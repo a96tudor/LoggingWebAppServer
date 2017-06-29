@@ -1,5 +1,4 @@
 import sqlite3 as sql
-import exceptions as exp
 from datetime import datetime as dt
 
 class DatabaseHandler:
@@ -29,7 +28,7 @@ class DatabaseHandler:
 
     def _execute_DELETE(self, table, conds, *args):
 
-        query = "DELETE FROM + " table + " WHERE " + conds
+        query = "DELETE FROM " + table + " WHERE " + conds
         self._execute_query(query, *args)
 
     def _execute_INSERT(self, table, cols, *args):
@@ -95,28 +94,57 @@ class DatabaseHandler:
 
         return results
 
-    def start_work(self, email):
+    def start_work(self, email, course):
         """
 
         :param email:       The email of the user that wants to start to work
+        :param course:      The course name
         :return:            - status = True - if it was successful
                                        False - otherwise
                             - message   The error message/ a blank string if it was successful
         """
 
-        results = self._execute_SELECT(self._users_table, "email=?", ["id"], email)
+        try:
+            con = sql.connect(self._dbName)
+            cur = con.cursor()
+            cur.execute("SELECT id FROM users WHERE email='" + email +"';")
+            results = list(set(cur.fetchall()))
+            con.commit()
+            con.close()
+        except:
+            print("email error")
+            return False, "Server error"
+
+        print(results)
 
         if len(results) != 1:
             #Failed! No such email or too many entries
             return False, "Incorrect email!"
 
-
         uid = results[0][0]
 
         try:
+            con = sql.connect(self._dbName)
+            cur = con.cursor()
+            cur.execute("SELECT id FROM courses WHERE name='"+course+"';")
+            results = list(set(cur.fetchall()))
+            con.commit()
+            con.close()
+
+        except:
+            print("course error")
+            return False, "Server error"
+
+        if len(results) != 1:
+            #Failed! No such course or too many entries
+            return False, "Incorrect course name"
+
+        cid = results[0][0]
+
+        try:
             self._execute_INSERT(self._working_table,
-                                ["uid", "working", "since"],
-                                uid, 1, dt.now())
+                                ["uid", "working", "since", "cid"],
+                                int(uid), 1, dt.now(), int(cid))
         except:
             return False, "Server Error"
 
@@ -131,7 +159,12 @@ class DatabaseHandler:
         """
 
         try:
-            results = self._execute_SELECT(self._users_table, "email=?", ["id"], email)
+            con = sql.connect(self._dbName)
+            cur = con.cursor()
+            cur.execute("SELECT id FROM users WHERE email=?", email)
+            results = list(set(cur.fetchall()))
+            con.commit()
+            con.close()
         except:
             #Something went wrong when doing the query
             return False, "Server error!"
@@ -141,7 +174,12 @@ class DatabaseHandler:
 
         uid = results[0][0]
         try:
-            results = self._execute_SELECT(self._working_table, "uid=?", ["working", "cid"], uid)
+            con = sql.connect(self._dbName)
+            cur = con.cursor()
+            cur.execute("SELECT working, cid FROM working WHERE uid=?", uid)
+            results = list(set(cur.fetchall()))
+            con.commit()
+            con.close()
         except:
             return False, "Server error!"
 

@@ -22,8 +22,8 @@ def create_users_table():
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " \
                 "email VARCHAR(254) NOT NULL, " \
                 "full_name VARCHAR(100) NOT NULL, " \
-                "salt CHAR(64) NOT NULL, " \
-                "password CHAR(64) NOT NULL, " \
+                "salt VARCHAR(64) NOT NULL, " \
+                "password VARCHAR(64) NOT NULL, " \
                 "admin INTEGER NOT NULL DEFAULT 0 " \
             ");"
 
@@ -50,7 +50,7 @@ def create_courses_table():
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " \
                 "name VARCHAR(100) NOT NULL, " \
                 "url VARCHAR(500) NOT NULL," \
-                "cid INTEGER, " \
+                "cid INTEGER NOT NULL, " \
                 "FOREIGN KEY(cid) REFERENCES course_categories(id)" \
             ");"
 
