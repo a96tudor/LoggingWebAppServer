@@ -9,7 +9,7 @@ def execute_query(query, *args):
     :return:
     """
 
-    con = sql.connect("SMU-logs.db")
+    con = sql.connect("tests/SMU-logs.db")
     cur = con.cursor()
     cur.execute(query, args)
     con.commit()
@@ -36,7 +36,9 @@ def create_working_table():
                 "uid INTEGER PRIMARY KEY, " \
                 "working INTEGER NOT NULL DEFAULT 0, " \
                 "since DATE, " \
-                "FOREIGN KEY(uid) REFERENCES users(id)" \
+                "cid INTEGER NOT NULL, " \
+                "FOREIGN KEY(uid) REFERENCES users(id), " \
+                "FOREIGN KEY(cid) REFERENCES courses(id)" \
             ");"
 
     execute_query(query)
