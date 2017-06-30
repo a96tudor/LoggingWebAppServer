@@ -54,7 +54,9 @@ class DatabaseHandler:
                 qmarks += ") "
 
         query += "VALUES " + qmarks
+
         print(query)
+
 
         self._execute_query(query, *args)
 
@@ -112,10 +114,7 @@ class DatabaseHandler:
             con.commit()
             con.close()
         except:
-            print("email error")
             return False, "Server error"
-
-        print(results)
 
         if len(results) != 1:
             #Failed! No such email or too many entries
@@ -132,7 +131,6 @@ class DatabaseHandler:
             con.close()
 
         except:
-            print("course error")
             return False, "Server error"
 
         if len(results) != 1:
@@ -161,12 +159,13 @@ class DatabaseHandler:
         try:
             con = sql.connect(self._dbName)
             cur = con.cursor()
-            cur.execute("SELECT id FROM users WHERE email=?", email)
+            cur.execute("SELECT id FROM users WHERE email='" + str(email) +"';")
             results = list(set(cur.fetchall()))
             con.commit()
             con.close()
         except:
             #Something went wrong when doing the query
+            print("aaaa")
             return False, "Server error!"
 
         if len(results) != 1:
@@ -176,7 +175,7 @@ class DatabaseHandler:
         try:
             con = sql.connect(self._dbName)
             cur = con.cursor()
-            cur.execute("SELECT working, cid FROM working WHERE uid=?", uid)
+            cur.execute("SELECT working, cid FROM working WHERE uid=" + str(uid))
             results = list(set(cur.fetchall()))
             con.commit()
             con.close()
@@ -190,10 +189,10 @@ class DatabaseHandler:
 
         try:
             self._execute_DELETE(self._working_table, "uid=?", uid)
-
             self._execute_INSERT(self._logs_table,
-                                ["uid", "cid", "time"],
+                                ["uid", "cid", "duration"],
                                 uid, cid, time)
+            print("done the delete")
         except:
             return False, "Server error!"
 
