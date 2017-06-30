@@ -81,6 +81,9 @@ def stop_work():
                     if response == "Incorrect time":
                         return Response(response="Incorrect time",
                                         status=400)
+                    if response == "Not working":
+                        return Response(response="Not working",
+                                        status=400)
             else:
                 return Response(response="Wrong format",
                                 status=400)
