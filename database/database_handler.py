@@ -175,7 +175,7 @@ class DatabaseHandler:
         try:
             con = sql.connect(self._dbName)
             cur = con.cursor()
-            cur.execute("SELECT working, cid FROM working WHERE uid=" + str(uid))
+            cur.execute("SELECT working, cid, since FROM working WHERE uid=" + str(uid))
             results = list(set(cur.fetchall()))
             con.commit()
             con.close()
@@ -186,6 +186,9 @@ class DatabaseHandler:
             return False, "Not working!"
 
         cid = results[0][1]
+
+        if time < 0:
+            return False, "Incorrect time!"
 
         try:
             self._execute_DELETE(self._working_table, "uid=?", uid)
