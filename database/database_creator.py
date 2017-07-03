@@ -9,7 +9,7 @@ def execute_query(query, *args):
     :return:
     """
 
-    con = sql.connect("tests/SMU-logs.db")
+    con = sql.connect("SMU-logs.db")
     cur = con.cursor()
     cur.execute(query, args)
     con.commit()
@@ -55,9 +55,9 @@ def create_courses_table():
                 "about TEXT, " \
                 "syllabus TEXT," \
                 "notes TEXT," \
-                "weekly_commitment_lower_limit INT NOT NULL," \
-                "weekly_commitment_higher_limit INT," \
-                "number_weeks INT NOT NULL" \
+                "weekly_commitment_low INT," \
+                "weekly_commitment_high INT," \
+                "number_weeks INT," \
                 "FOREIGN KEY(cid) REFERENCES course_categories(id)" \
             ");"
 

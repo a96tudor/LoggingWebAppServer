@@ -1,5 +1,6 @@
 import pandas as pd
 import sqlite3 as sql
+import numpy as np
 
 db_path = ""
 
@@ -44,6 +45,41 @@ def _execute_query(query, *args):
     con.commit()
     con.close()
 
+def _execute_SELECT(table, conds, cols=["*"], limit=None, order=None, groupBy=None, *args):
+    """
+                function that executes a SELECT query
+    :param cols:        the list of columns we want. default ['*']
+    :param table:       the table name
+    :param conds:       the conditions, as a string
+    :param limit:       how many results to return. default None
+    :param order:       the way to order the results. default None
+    :param groupBy:     the way to group the results. default None
+    :return:            the list representing the results of the query
+    """
+
+    cols_string = ",".join(cols)
+    query = "SELECT " + cols_string + " FROM " + str(table)
+
+    if conds != None:
+        query += " WHERE " + str(conds)
+
+    if order != None:
+        query += " ORDER BY " + str(order)
+
+    if groupBy != None:
+        query += " GROUP BY " + str(groupBy)
+
+    if limit != None:
+        query += " LIMIT " + str(limit)
+
+    con = sql.connect("SMU-logs.db")
+    cur = con.cursor()
+    cur.execute(query, args)
+    results = list(set(cur.fetchall()))
+    con.commit()
+    con.close()
+
+    return results
 
 def populate_categories():
     print("Populating categories table ...")
@@ -60,16 +96,41 @@ def populate_categories():
 
 
 def populate_courses(categories_list):
-    print("\n")
+    print()
     print("Populating courses table ...")
     for category in categories_list:
         path = "data/courses/"+category+".csv"
-        print(category)
-        print(path)
         df = pd.read_csv(path)
-        print(df["Link"])
+        cols = {
+            "name": "Name of resource",
+            "url": "Link",
+            "description": "Description",
+            "about": "About",
+            "syllabus": "Syllabus",
+            "notes": "Notes",
+            "weekly_commitment_low": "Weekly time commitment-low(hours)",
+            "weekly_commitment_high": "Weekly time commitment-high(hours)",
+            "number_weeks": "Length of course(weeks)"
+        }
+        for idx in df.index.values:
+            good_cols_names = ["cid"]
+            good_cols_values = [categories_list.index(category) + 1]
+            for col in cols:
+                if df.loc[idx, cols[col]] != np.nan and not isinstance(df.loc[idx, cols[col]], np.float64):
+                    good_cols_names.append(col)
+                    if col in ["weekly_commitment_low", "weekly_commitment_high", "number_weeks"]:
+                        good_cols_values.append(int(df.loc[idx, cols[col]]))
+                    else:
+                        good_cols_values.append(df.loc[idx, cols[col]])
+            _execute_INSERT("courses", good_cols_names, *good_cols_values)
+
+    print("DONE!")
 
 if __name__ == "__main__":
     db_path = input("Enter the database path: ")
     categories_list = populate_categories()
     populate_courses(categories_list)
+    print("Testing courses table...")
+    print("Courses table:")
+    print(_execute_SELECT("courses", None))
+
