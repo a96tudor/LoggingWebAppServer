@@ -1,11 +1,14 @@
 from flask import Flask, request, jsonify, Response
 from database.database_handler import DatabaseHandler as DH
+from flask_cors import CORS, cross_origin
 
-dh = DH("database/SMU-logs.db")
+dh = DH("database/tests/SMU-logs.db")
 app = Flask(__name__)
+CORS(app)
 
 
-@app.route("/start-work", methods=["POST"])
+@app.route("/start-work", methods=["POST", "OPTIONS"])
+@cross_origin()
 def start_work():
     """
 
@@ -20,7 +23,7 @@ def start_work():
     :return:    A Response to the given request
     """
     if request.is_json:
-        data = request.json
+        data = request.get_json(force=True)
         if "email" in data and "course" in data:
             if isinstance(data["email"], str) and isinstance(data["course"], str):
                 status, response = dh.start_work(data["email"], data["course"])
@@ -31,11 +34,14 @@ def start_work():
                     if response == "Server error":
                         return Response(response="Server error",
                                         status=500)
-                    if response == "Incorrect email":
+                    if response == "Incorrect email!":
                         return Response(response="Wrong email",
                                         status=400)
                     if response == "Incorrect course name":
                         return Response(response="Incorrect course name",
+                                        status=400)
+                    if response == "Email already in use!":
+                        return Response(response="Email already in use!",
                                         status=400)
             else:
                 return Response(response="Wrong format",
@@ -48,7 +54,8 @@ def start_work():
                         status=400)
 
 
-@app.route("/stop-work", methods=["POST"])
+@app.route("/stop-work", methods=["POST", "OPTIONS"])
+@cross_origin()
 def stop_work():
 
     """
@@ -75,7 +82,7 @@ def stop_work():
                     if response == "Server error":
                         return Response(response="Server error",
                                         status=500)
-                    if response == "Wrong email":
+                    if response == "Wrong email!":
                         return Response(response="Wrong email",
                                         status=400)
                     if response == "Incorrect time":

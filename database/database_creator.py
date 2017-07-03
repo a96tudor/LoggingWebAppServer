@@ -9,7 +9,7 @@ def execute_query(query, *args):
     :return:
     """
 
-    con = sql.connect("tests/SMU-logs.db")
+    con = sql.connect("SMU-logs.db")
     cur = con.cursor()
     cur.execute(query, args)
     con.commit()
@@ -22,8 +22,8 @@ def create_users_table():
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " \
                 "email VARCHAR(254) NOT NULL, " \
                 "full_name VARCHAR(100) NOT NULL, " \
-                "salt VARCHAR(64) NOT NULL, " \
-                "password VARCHAR(64) NOT NULL, " \
+                "salt VARCHAR(64), " \
+                "password VARCHAR(64), " \
                 "admin INTEGER NOT NULL DEFAULT 0 " \
             ");"
 
@@ -51,6 +51,13 @@ def create_courses_table():
                 "name VARCHAR(100) NOT NULL, " \
                 "url VARCHAR(500) NOT NULL," \
                 "cid INTEGER NOT NULL, " \
+                "description TEXT," \
+                "about TEXT, " \
+                "syllabus TEXT," \
+                "notes TEXT," \
+                "weekly_commitment_low INT," \
+                "weekly_commitment_high INT," \
+                "number_weeks INT," \
                 "FOREIGN KEY(cid) REFERENCES course_categories(id)" \
             ");"
 
