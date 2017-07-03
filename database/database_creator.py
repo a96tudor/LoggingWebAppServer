@@ -22,8 +22,8 @@ def create_users_table():
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " \
                 "email VARCHAR(254) NOT NULL, " \
                 "full_name VARCHAR(100) NOT NULL, " \
-                "salt VARCHAR(64) NOT NULL, " \
-                "password VARCHAR(64) NOT NULL, " \
+                "salt VARCHAR(64), " \
+                "password VARCHAR(64), " \
                 "admin INTEGER NOT NULL DEFAULT 0 " \
             ");"
 

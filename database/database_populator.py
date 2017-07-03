@@ -126,11 +126,27 @@ def populate_courses(categories_list):
 
     print("DONE!")
 
+
+def populate_users():
+    print()
+    print("Inserting users...")
+    df = pd.read_csv("data/users.csv")
+    for idx in df.index.values:
+        _execute_INSERT("users", ["full_name", "email"], df.loc[idx, "Name"], df.loc[idx, "Email"])
+    print("Done")
+    print()
+    print("Inserting admins...")
+    df = pd.read_csv("data/admins.csv")
+    for idx in df.index.values:
+        _execute_INSERT("users", ["full_name", "email", "admin"], df.loc[idx, "Name"], df.loc[idx, "Email"], 1)
+
+    print("Done")
+
 if __name__ == "__main__":
     db_path = input("Enter the database path: ")
     categories_list = populate_categories()
     populate_courses(categories_list)
-    print("Testing courses table...")
-    print("Courses table:")
-    print(_execute_SELECT("courses", None))
+    populate_users()
+    print(_execute_SELECT("users", None))
+
 
