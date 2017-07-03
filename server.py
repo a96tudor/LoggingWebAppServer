@@ -26,9 +26,7 @@ def start_work():
         data = request.get_json(force=True)
         if "email" in data and "course" in data:
             if isinstance(data["email"], str) and isinstance(data["course"], str):
-                print(data)
                 status, response = dh.start_work(data["email"], data["course"])
-                print(status, response)
                 if status:
                     return Response(response="All good!",
                                     status=200)
@@ -41,6 +39,9 @@ def start_work():
                                         status=400)
                     if response == "Incorrect course name":
                         return Response(response="Incorrect course name",
+                                        status=400)
+                    if response == "Email already in use!":
+                        return Response(response="Email already in use!",
                                         status=400)
             else:
                 return Response(response="Wrong format",
@@ -81,7 +82,7 @@ def stop_work():
                     if response == "Server error":
                         return Response(response="Server error",
                                         status=500)
-                    if response == "Wrong email":
+                    if response == "Wrong email!":
                         return Response(response="Wrong email",
                                         status=400)
                     if response == "Incorrect time":

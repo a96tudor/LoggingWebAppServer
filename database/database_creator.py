@@ -51,6 +51,13 @@ def create_courses_table():
                 "name VARCHAR(100) NOT NULL, " \
                 "url VARCHAR(500) NOT NULL," \
                 "cid INTEGER NOT NULL, " \
+                "description TEXT," \
+                "about TEXT, " \
+                "syllabus TEXT," \
+                "notes TEXT," \
+                "weekly_commitment_lower_limit INT NOT NULL," \
+                "weekly_commitment_higher_limit INT," \
+                "number_weeks INT NOT NULL" \
                 "FOREIGN KEY(cid) REFERENCES course_categories(id)" \
             ");"
 

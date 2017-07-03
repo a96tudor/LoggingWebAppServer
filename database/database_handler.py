@@ -144,7 +144,7 @@ class DatabaseHandler:
                                 ["uid", "working", "since", "cid"],
                                 int(uid), 1, dt.now(), int(cid))
         except:
-            return False, "Server Error"
+            return False, "Email already in use!"
 
         return True, ""
 
@@ -165,7 +165,6 @@ class DatabaseHandler:
             con.close()
         except:
             #Something went wrong when doing the query
-            print("aaaa")
             return False, "Server error!"
 
         if len(results) != 1:
@@ -195,7 +194,6 @@ class DatabaseHandler:
             self._execute_INSERT(self._logs_table,
                                 ["uid", "cid", "duration"],
                                 uid, cid, time)
-            print("done the delete")
         except:
             return False, "Server error!"
 
