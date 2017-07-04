@@ -142,7 +142,7 @@ def signup():
         return Response(400, "Incorrect format")
 
 
-@app.route("/signup", methods=["POST", "OPTIONS"])
+@app.route("/login", methods=["POST", "OPTIONS"])
 @cross_origin()
 def login():
     """
