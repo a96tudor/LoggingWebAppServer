@@ -1,5 +1,6 @@
 import sqlite3 as sql
 from datetime import datetime as dt
+from passlib.hash import pbkdf2_sha256
 
 class DatabaseHandler:
 
@@ -25,6 +26,25 @@ class DatabaseHandler:
         cur.execute(query, args)
         con.commit()
         con.close()
+
+    def _encrypt_pass(self, password):
+        """
+        :param password:        the password to encrypt
+        :return:                the encrypted password
+        """
+        hash = pbkdf2_sha256.encrypt(password,
+                                     rounds=200000,
+                                     salt_size=16)
+        return hash
+
+    def _check_pass(self, password, hash):
+        """
+        :param password:        the password to be tested
+        :param hash:            the hashed password
+        :return:                True - if the passwords match
+                                False - otherwise
+        """
+        return pbkdf2_sha256.verify(password, hash)
 
     def _execute_DELETE(self, table, conds, *args):
 
@@ -199,6 +219,51 @@ class DatabaseHandler:
 
         return True, ""
 
+    def add_user(self, email, name, password, admin):
+        """
+                Function that inserts a new user into the database
 
+        :param email:       The user's email
+        :param name:        The user's name
+        :param password:    The user's password
+        :param admin:       True -  if the user is admin
+                            False - otherwise
+
+        :return:            -> True - if it was successful
+                               False - otherwise
+                            -> an error message, if necessary
+        """
+        try:
+            users = self._execute_SELECT("users","email='"+email+"'")
+        except:
+            return False, "Server error"
+
+        if len(users) != 0:
+            #The user is already in the database
+            return False, "Email already in use"
+
+        try:
+            self._execute_INSERT("users",
+                                 ["email", "full_name", "password", "admin"],
+                                 email,
+                                 name,
+                                 self._encrypt_pass(password),
+                                 1 if admin else 0)
+        except:
+            return False, "Server error"
+
+        return True, ""
+
+    def verify_user(self, email, password):
+
+        try:
+            pass_hash = self._execute_SELECT("users", "email='"+email+"'",cols=["password"])
+        except:
+            return False, "Server error"
+
+        if len(pass_hash) != 0 and self._check_pass(password, pass_hash):
+            return True, ""
+        else:
+            return False, "Incorrect username or password"
 
 
