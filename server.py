@@ -102,5 +102,79 @@ def stop_work():
                         status=400)
 
 
+@app.route("/signup", methods=["POST", "OPTIONS"])
+@cross_origin()
+def signup():
+    """
+           Method that handles a signup request from the client
+           It expects a request of the format:
+
+               {
+                   "email": <email>,
+                   "name": <name>,
+                   "password": <password>,
+                   "admin": 0 - if not
+                            1 - if yes
+               }
+
+    :return:
+    """
+    if request.is_json:
+        data = request.json
+        if "email" in data and "name" in data and "password" in data and "admin" in data:
+            if isinstance(data["email"], str) and isinstance(data["password"], str) and \
+                isinstance(data["admin"], int) and isinstance(data["name"], str):
+
+                status, msg = dh.add_user(data["email"], data["name"], data["password"], data["admin"] == 1)
+
+                if status:
+                    return Response(200, "Success")
+                else:
+                    if msg != "Server error":
+                        return Response(400, msg)
+                    else:
+                        return Response(500, msg)
+            else:
+                return Response(400, "Incorrect format")
+        else:
+            return Response(400, "Incorrect format")
+    else:
+        return Response(400, "Incorrect format")
+
+
+@app.route("/signup", methods=["POST", "OPTIONS"])
+@cross_origin()
+def login():
+    """
+             Method that handles a signup request from the client
+             It expects a request of the format:
+
+                 {
+                     "email": <email>,
+                     "password": <password>,
+                 }
+
+      :return:
+      """
+    if request.is_json:
+        data = request.json
+        if "email" in data and "password" in data:
+            if isinstance(data["email"], str) and isinstance(data["password"], str):
+                status, msg = dh.verify_user(data["email"], data["password"])
+                if status:
+                    return Response(200, "Success")
+                else:
+                    if msg == "Server error":
+                        return Response(500, msg)
+                    else:
+                        return Response(400, msg)
+            else:
+                return Response(400, "Incorrect format")
+        else:
+            return Response(400, "Incorrect format")
+    else:
+        return Response(400, "Incorrect format")
+
+
 if __name__ == "__main__":
     app.run(debug=True)
