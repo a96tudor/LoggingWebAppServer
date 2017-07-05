@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, Response
 from database.database_handler import DatabaseHandler as DH
 from flask_cors import CORS, cross_origin
 
-dh = DH("database/tests/SMU-logs.db")
+dh = DH("database/SMU-logs.db")
 app = Flask(__name__)
 CORS(app)
 
