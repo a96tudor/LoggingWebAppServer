@@ -266,4 +266,25 @@ class DatabaseHandler:
         else:
             return False, "Incorrect username or password"
 
+    def get_courses(self):
+
+        try:
+            query_results = self._execute_SELECT("courses", None, cols=["name"])
+        except:
+            return False, "Server Error!"
+
+        id = 0
+        results = {
+            "courses": []
+        }
+
+        for result in query_results:
+            partial_result = {
+                "id": id,
+                "name": result[0]
+            }
+            results["courses"].append(partial_result)
+
+        return True, results
+
 

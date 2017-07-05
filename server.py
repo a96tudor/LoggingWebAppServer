@@ -176,5 +176,29 @@ def login():
         return Response(400, "Incorrect format")
 
 
+@app.route("/", methods=["GET", "OPTIONS"])
+@cross_origin()
+def get_courses():
+    """
+        Function that receives a GET request for the list of courses and returns it
+    in a JSON of the format:
+
+        {
+            "courses": [
+                {
+                    "id": <id>,
+                    "name": <name>
+                }, ...
+            ]
+        }
+    :return:
+    """
+    status, courses = dh.get_courses()
+
+    if not status:
+        return Response(status=500, response="Server error")
+    else:
+        return jsonify(courses)
+
 if __name__ == "__main__":
     app.run(debug=True)
