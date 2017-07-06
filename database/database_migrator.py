@@ -68,7 +68,7 @@ def _execute_query(db_path, query, *args):
     con.close()
 
 
-def migrate_table(old_db, new_db, table_name):
+def migrate_table(old_db, new_db, table_name, first_index):
 
     query = "pragma table_info(" + table_name + ");"
     con = sql.connect(old_db)
@@ -80,7 +80,7 @@ def migrate_table(old_db, new_db, table_name):
     con.commit()
     con.close()
 
-    old_table_data = [x[1:] for x in _execute_SELECT(old_db, table_name, None)]
+    old_table_data = [x[first_index:] for x in _execute_SELECT(old_db, table_name, None)]
 
     for tuple in old_table_data:
         _execute_INSERT(new_db, table_name, *tuple)
@@ -91,5 +91,5 @@ if __name__ == "__main__":
     old_db = input("Old database name: ")
     new_db = input("New database name: ")
 
-    migrate_table(old_db, new_db, "logs")
-    migrate_table(old_db, new_db, "working")
+    migrate_table(old_db, new_db, "logs", 1)
+    migrate_table(old_db, new_db, "working", 0)

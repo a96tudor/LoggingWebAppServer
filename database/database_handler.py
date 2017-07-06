@@ -75,7 +75,6 @@ class DatabaseHandler:
 
         query += "VALUES " + qmarks
 
-        print(query)
 
 
         self._execute_query(query, *args)
@@ -171,8 +170,8 @@ class DatabaseHandler:
     def stop_work(self, email, time):
         """
 
-        :param email:
-        :param time:
+        :param email:           The email of the user that stops working
+        :param time:            The time the user spent working
         :return:
         """
 
@@ -206,7 +205,7 @@ class DatabaseHandler:
 
         cid = results[0][1]
 
-        if time < 0:
+        if not isinstance(time, int) or time < 0:
             return False, "Incorrect time!"
 
         try:
@@ -257,11 +256,11 @@ class DatabaseHandler:
     def verify_user(self, email, password):
 
         try:
-            pass_hash = self._execute_SELECT("users", "email='"+email+"'",cols=["password"])
+            pass_hash = self._execute_SELECT("users", "email='"+email+"'", cols=["password"])
         except:
             return False, "Server error"
 
-        if len(pass_hash) != 0 and self._check_pass(password, pass_hash):
+        if len(pass_hash) != 0 and self._check_pass(password, pass_hash[0][0]):
             return True, ""
         else:
             return False, "Incorrect username or password"
@@ -289,4 +288,12 @@ class DatabaseHandler:
 
         return True, results
 
+
+    def _get_user_from_hash(self, hash):
+
+        emails = self._execute_SELECT("users", None)
+        
+
+    def validate_user(self, hash, password):
+        self._get_user_from_hash(hash)
 
