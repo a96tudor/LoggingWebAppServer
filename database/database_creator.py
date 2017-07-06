@@ -1,5 +1,7 @@
 import sqlite3 as sql
 
+db_path = ""
+
 
 def execute_query(query, *args):
     """
@@ -9,7 +11,7 @@ def execute_query(query, *args):
     :return:
     """
 
-    con = sql.connect("SMU-logs.db")
+    con = sql.connect(db_path)
     cur = con.cursor()
     cur.execute(query, args)
     con.commit()
@@ -80,13 +82,18 @@ def create_log_table():
                 "uid INTEGER NOT NULL, " \
                 "cid INTEGER NOT NULL, " \
                 "duration INTEGER NOT NULL, " \
+                "started_at DATE, " \
+                "logged_at DATE, " \
                 "FOREIGN KEY(cid) REFERENCES courses(id), " \
                 "FOREIGN KEY(uid) REFERENCES users(id)" \
             ");"
 
     execute_query(query)
 
-if __name__ == "__main__":
+
+def create_all(path):
+    global db_path
+    db_path = path
     print("Creating tables...")
     create_users_table()
     print("Created users table!")
@@ -99,3 +106,7 @@ if __name__ == "__main__":
     create_log_table()
     print("Created logs table!")
     print("Done!")
+
+if __name__ == "__main__":
+    db_path = input("Enter database file path:")
+    create_all(db_path)

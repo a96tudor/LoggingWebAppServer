@@ -212,8 +212,8 @@ class DatabaseHandler:
         try:
             self._execute_DELETE(self._working_table, "uid=?", uid)
             self._execute_INSERT(self._logs_table,
-                                ["uid", "cid", "duration"],
-                                uid, cid, time)
+                                ["uid", "cid", "duration", "started_at", "logged_at"],
+                                uid, cid, time, results[0][2], dt.now())
         except:
             return False, "Server error!"
 
@@ -269,9 +269,10 @@ class DatabaseHandler:
     def get_courses(self):
 
         try:
-            query_results = self._execute_SELECT("courses", None, cols=["name"])
+            query_results = self._execute_SELECT("courses", None, ["name"])
         except:
             return False, "Server Error!"
+
 
         id = 0
         results = {
@@ -283,6 +284,7 @@ class DatabaseHandler:
                 "id": id,
                 "name": result[0]
             }
+            id+=1
             results["courses"].append(partial_result)
 
         return True, results

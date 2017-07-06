@@ -176,7 +176,7 @@ def login():
         return Response(400, "Incorrect format")
 
 
-@app.route("/", methods=["GET", "OPTIONS"])
+@app.route("/get-courses", methods=["GET", "OPTIONS"])
 @cross_origin()
 def get_courses():
     """

@@ -142,11 +142,17 @@ def populate_users():
 
     print("Done")
 
-if __name__ == "__main__":
-    db_path = input("Enter the database path: ")
+
+def populate_all(path):
+    db_path = path
     categories_list = populate_categories()
     populate_courses(categories_list)
     populate_users()
+
+if __name__ == "__main__":
+    db_path = input("Enter the database path: ")
+    populate_all(db_path)
     print(_execute_SELECT("users", None))
+
 
 
