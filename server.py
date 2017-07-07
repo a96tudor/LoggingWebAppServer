@@ -200,5 +200,16 @@ def get_courses():
     else:
         return jsonify(courses)
 
+@app.route("/working-users", methods=["GET", "OPTIONS"])
+@cross_origin()
+def working_users():
+
+    return jsonify(dh.get_working_users())
+
+@app.route("/logs", methods=["GET", "OPTIONS"])
+@cross_origin()
+def get_logs():
+    return jsonify(dh.get_logs())
+
 if __name__ == "__main__":
     app.run(debug=True)
