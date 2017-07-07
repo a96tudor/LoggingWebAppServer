@@ -147,7 +147,7 @@ def populate_all(path):
     db_path = path
     categories_list = populate_categories()
     populate_courses(categories_list)
-    #populate_users()
+    populate_users()
 
 if __name__ == "__main__":
     db_path = input("Enter the database path: ")
