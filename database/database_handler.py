@@ -47,6 +47,14 @@ class DatabaseHandler:
         return pbkdf2_sha256.verify(password, hash)
 
     def _execute_DELETE(self, table, conds, *args):
+        """
+            Method that deletes an entry from a table
+
+        :param table:       the name of the table to delete from
+        :param conds:       The conditions used to identify the row we want to delete
+        :param args:        The values of the variables used in the conditions
+        :return:            -
+        """
 
         query = "DELETE FROM " + table + " WHERE " + conds
         self._execute_query(query, *args)
@@ -113,6 +121,76 @@ class DatabaseHandler:
         con.commit()
         con.close()
 
+        return results
+
+    def _execute_UPDATE(self, table, cols, new_values, conds, conds_args):
+        """
+            Method that updates a database table
+
+        :param table:           The table we execute the update in
+        :param cols:            The columns we update, as a list
+        :param new_values:      The new values for the corresponding columns, also as a list
+        :param conds:           The conditions to identify the row(s) to update
+        :param conds_args:      The arguments for the conditions, as a list!!!
+        :return:                -
+        """
+        query = "UPDATE " + table + " SET "
+
+        for i in range(len(cols)):
+            item = str(cols[i]) + "=?"
+            if i != len(cols) - 1:
+                item += ", "
+            else:
+                item += " "
+
+            query += item
+
+        query += " WHERE " + conds
+        arg = new_values+conds_args
+
+        self._execute_query(query, *arg)
+
+    def _get_user_from_hash(self, hash):
+        """
+            Method that identifies an user based on the hash of the email
+
+        :param hash:    the hash of the email we're looking for
+        :return:        -> A tuple representing the row corresponding to that user
+                        -> None: otherwise
+        """
+
+        all_users = self._execute_SELECT("users", None)
+        for user in all_users:
+            email = user[1]
+            if self._get_sha256_encryption(email) == hash:
+                return user
+
+        return None
+
+    def _get_sha256_encryption(self, plaintext):
+        """
+            Method that takes a plaintext message and returns its sha256 encryption
+
+        :param plaintext:       The text to encrypt
+        :return:                the SHA-256 encryption as a base64 string
+        """
+        import hashlib
+        return hashlib.sha256(plaintext).hexdigest()
+
+    def _execute_SELECT_from_query(self, query, *args):
+        """
+                Method that executes complex SELECT statements, from a given query
+
+        :param query:       The query to execute
+        :param args:        The arguments to replace the '?' wildcards from the query
+        :return:            The result of the query, as a list of tuples
+        """
+        con = sql.connect(self._dbName)
+        cur = con.cursor()
+        cur.execute(query)
+        results = list(set(cur.fetchall()))
+        con.commit()
+        con.close()
         return results
 
     def start_work(self, email, course):
@@ -254,6 +332,19 @@ class DatabaseHandler:
         return True, ""
 
     def verify_user(self, email, password):
+        """
+                Method that tries to authenticate a given user, based on
+            a pair of credentials
+
+        :param email:       The user's email to verify
+        :param password:    The user's password to verify
+        :return:            -> Status :
+                                - True: if the authentication was a success
+                                - False: otherwise
+                            -> Message:
+                                - "": if the authentication was a success
+                                - Some error message: otherwise
+        """
 
         try:
             pass_hash = self._execute_SELECT("users", "email='"+email+"'", cols=["password"])
@@ -265,7 +356,25 @@ class DatabaseHandler:
         else:
             return False, "Incorrect username or password"
 
-    def get_courses(self):
+    def get_courses_list(self):
+        """
+            Method that returns the list of the courses currently in the database
+
+        :return:    A Python dictionary of the format:
+
+                    {
+                        "courses": [
+                            {
+                                "id": <course_id>,
+                                "name": <course_name>
+                            }
+                            {
+                                ...
+                            }
+                            ...
+                        ]
+                    }
+        """
 
         try:
             query_results = self._execute_SELECT("courses", None, ["name"])
@@ -283,17 +392,147 @@ class DatabaseHandler:
                 "id": id,
                 "name": result[0]
             }
-            id+=1
+            id += 1
             results["courses"].append(partial_result)
 
         return True, results
 
+    def validate_user(self, email_hash, password):
+        """
+                Method that takes a new user's hashed email and pass and sets it
 
-    def _get_user_from_hash(self, hash):
+        :param email_hash:        The hashed email of the user
+        :param password:          The password we want to set for the user
+        :return:
+        """
+        user = self._get_user_from_hash(email_hash)
 
-        emails = self._execute_SELECT("users", None)
-        
+        if user is None:
+            return False, "Incorrect user hash"
 
-    def validate_user(self, hash, password):
-        self._get_user_from_hash(hash)
+        if not user[3] is None:
+            return False, "User's password already set"
+
+        try:
+            self._execute_UPDATE("users", ["password"], [password], "id=?", [user[0]])
+        except:
+            return False, "Server error"
+
+        return True, ""
+
+    def get_working_users(self):
+        """
+                Method that returns the users working at the moment.
+
+        :return:    The users currently working, as a dictionary of the format:
+
+                    {
+                        "users": [
+                            {
+                                "id": <id>,
+                                "name": <full_name>,
+                                "email": <hashed_email>,
+                                "since": <working_since>,
+                                "course": <course_name>
+                            },s
+                            ...
+                        ]
+                    }
+        """
+        query = "SELECT u.full_name, u.email, c.name, w.since FROM " \
+                "working AS w " \
+                "INNER JOIN users AS u ON w.uid=u.id " \
+                "INNER JOIN courses AS c ON w.cid=c.id ";
+
+        try:
+            results = self._execute_SELECT_from_query(query)
+        except:
+            print("SERVER ERROR!")
+            return None
+
+        working_users = {
+            "users": list()
+        }
+
+        id = 0
+
+        for result in results:
+            new_entry = dict()
+            new_entry["id"] = id
+            new_entry["name"] = result[0]
+            new_entry["email"] = self._get_sha256_encryption(result[1])
+            new_entry["course"] = result[2]
+            new_entry["since"] = result[3]
+            id += 1
+            working_users["users"].append(new_entry)
+
+        return working_users
+
+    def get_logs(self):
+        """
+            Method that returns all the logs from the database
+
+        :return:       The logs, as a dictionary of the format:
+
+                    {
+                        "users": [
+                            {
+                                "id": <id>,
+                                "name": <full_name>,
+                                "email": <hashed_email>,
+                                "course": <course_name>,
+                                "seconds": <no_of_seconds_worked>,
+                                "started": <date&time_the_user_started_working>,
+                                "logged": <date&time_the_entry_was_logged>
+                            },
+                            ...
+                        ]
+                    }
+        """
+
+        query = "SELECT u.full_name, u.email, c.name, l.duration, l.started_at, l.logged_at " \
+                "FROM logs AS l " \
+                "INNER JOIN users AS u ON l.uid=u.id " \
+                "INNER JOIN courses AS c ON l.cid=c.id"
+
+        try:
+            results = self._execute_SELECT_from_query(query)
+        except:
+            print("SERVER ERROR!")
+            return None
+
+        logs = {
+            "users": list()
+        }
+        id = 0
+
+        for result in results:
+            new_entry = dict()
+            new_entry["id"] = id
+            new_entry["name"] = result[0]
+            new_entry["email"] = self._get_sha256_encryption(result[1])
+            new_entry["course"] = result[2]
+            new_entry["seconds"] = result[3]
+            new_entry["started"] = result[4]
+            new_entry["logged"] = result[5]
+            logs["users"].append(new_entry)
+            id += 1
+        return logs
+
+    def is_admin(self, email_hash):
+        """
+            Method that checks if a user is admin or not, based on the hashed email address
+
+        :param email_hash:      The hashed email address
+        :return:                True - if the user is an admin
+                                False - otherwise
+        """
+
+        user_row = self._get_user_from_hash(email_hash)
+
+        if user_row is None:
+            # The user doesn't exist
+            return False
+
+        return user_row[-1] == 1
 
