@@ -1,4 +1,4 @@
-from database.database_handler import DatabaseHandler as DH
+from database_handler import DatabaseHandler as DH
 
 dh = DH("SMU-logs.db")
 
