@@ -83,7 +83,7 @@ def migrate_table(old_db, new_db, table_name, first_index):
     old_table_data = [x[first_index:] for x in _execute_SELECT(old_db, table_name, None)]
 
     for tuple in old_table_data:
-        _execute_INSERT(new_db, table_name, *tuple)
+        _execute_INSERT(new_db, table_name, cols_list, *tuple)
 
 
 if __name__ == "__main__":
