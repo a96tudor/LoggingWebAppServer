@@ -175,7 +175,7 @@ class DatabaseHandler:
         :return:                the SHA-256 encryption as a base64 string
         """
         import hashlib
-        return hashlib.sha256(plaintext).hexdigest()
+        return hashlib.sha256(plaintext.encode('utf-8')).hexdigest()
 
     def _execute_SELECT_from_query(self, query, *args):
         """
