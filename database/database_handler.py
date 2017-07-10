@@ -1,6 +1,9 @@
 import sqlite3 as sql
 from datetime import datetime as dt
+from dateutil import parser as dt_parse
+import datetime
 from passlib.hash import pbkdf2_sha256
+import string
 
 class DatabaseHandler:
 
@@ -10,6 +13,8 @@ class DatabaseHandler:
         self._logs_table = "logs"
         self._courses_table = "courses"
         self._courses_categories_table = "courses_categories"
+
+        self._DEFAULT_TTL = 10  # 2 hours
 
         self._dbName = db_path
 
@@ -331,12 +336,12 @@ class DatabaseHandler:
 
         return True, ""
 
-    def verify_user(self, email, password):
+    def verify_user(self, email_hash, password):
         """
                 Method that tries to authenticate a given user, based on
             a pair of credentials
 
-        :param email:       The user's email to verify
+        :param email_hash:       The user's hashed email to verify
         :param password:    The user's password to verify
         :return:            -> Status :
                                 - True: if the authentication was a success
@@ -346,12 +351,19 @@ class DatabaseHandler:
                                 - Some error message: otherwise
         """
 
+        if not isinstance(email_hash, str):
+            return False, "Server error"
+
         try:
-            pass_hash = self._execute_SELECT("users", "email='"+email+"'", cols=["password"])
+            user = self._get_user_from_hash(email_hash)
         except:
             return False, "Server error"
 
-        if len(pass_hash) != 0 and self._check_pass(password, pass_hash[0][0]):
+        if user is not None and self._check_pass(password, user[3]):
+            self._execute_INSERT("logged_in",
+                                 ["uid", "last_login", "TTL"],
+                                 user[0], dt.now(), self._DEFAULT_TTL
+            )
             return True, ""
         else:
             return False, "Incorrect username or password"
@@ -535,4 +547,40 @@ class DatabaseHandler:
             return False
 
         return user_row[-1] == 1
+
+    def is_logged_in(self, email_hash):
+        """
+            Method that checks if a user session is still valid
+
+            :param email_hash:  The hashed email, used to identify the user
+            :returns:     -> Status:    - True: if the session is valid
+                                        - False: otherwise
+                          -> Message    - error message: if the session was invalid
+                                        - "": otherwise
+        """
+
+        try:
+            user = self._get_user_from_hash(email_hash)
+        except:
+            return False, "Server error"
+
+        if user is None:
+            return False, "Wrong email hash"
+
+        try:
+            login_data = self._execute_SELECT("logged_in", "uid="+str(user[0]), ["last_login", "TTL", "id"])
+        except:
+            return False, "Server error"
+
+        if len(login_data) == 0:
+            return False, "Not logged in"
+
+        last_login = dt_parse.parse(login_data[0][0])
+        expiry_time = last_login + datetime.timedelta(seconds=login_data[0][1])
+
+        if dt.now() < expiry_time:
+            return True, ""
+        else:
+            self._execute_DELETE("logged_in", "id=?", login_data[0][2])
+            return False, "Session expired"
 

@@ -67,6 +67,8 @@ def stop_work():
                 "time": <time>
             }
 
+
+
     :return:
     """
 
@@ -150,7 +152,7 @@ def login():
              It expects a request of the format:
 
                  {
-                     "email": <email>,
+                     "email": <hashed_email>,
                      "password": <password>,
                  }
 
@@ -193,18 +195,20 @@ def get_courses():
         }
     :return:
     """
-    status, courses = dh.get_courses()
+    status, courses = dh.get_courses_list()
 
     if not status:
         return Response(status=500, response="Server error")
     else:
         return jsonify(courses)
 
+
 @app.route("/working-users", methods=["GET", "OPTIONS"])
 @cross_origin()
 def working_users():
 
     return jsonify(dh.get_working_users())
+
 
 @app.route("/logs", methods=["GET", "OPTIONS"])
 @cross_origin()

@@ -93,4 +93,9 @@ if __name__ == "__main__":
     new_db = input("New database name: ")
 
     migrate_table(old_db, new_db, "logs", 1)
+    print("Migrated logs table!")
     migrate_table(old_db, new_db, "working", 0)
+    print("Migrated working table!")
+    migrate_table(old_db, new_db, "logged_in", 1)
+    print("Migrated logged_in table!")
+    print("Migration done!")

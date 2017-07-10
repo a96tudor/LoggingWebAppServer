@@ -17,7 +17,6 @@ def execute_query(query, *args):
     con.commit()
     con.close()
 
-
 def create_users_table():
     query = "CREATE TABLE IF NOT EXISTS " \
             "users ( " \
@@ -26,6 +25,19 @@ def create_users_table():
                 "full_name VARCHAR(100) NOT NULL, " \
                 "password VARCHAR(64), " \
                 "admin INTEGER NOT NULL DEFAULT 0 " \
+            ");"
+
+    execute_query(query)
+
+
+def create_logged_in_table():
+    query = "CREATE TABLE IF NOT EXISTS " \
+            "logged_in (" \
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " \
+                "uid INTEGER NOT NULL, " \
+                "last_login DATE NOT NULL, " \
+                "TTL INTEGER NOT NULL, " \
+                "FOREIGN KEY(uid) REFERENCES users(id) " \
             ");"
 
     execute_query(query)
@@ -97,6 +109,8 @@ def create_all(path):
     print("Creating tables...")
     create_users_table()
     print("Created users table!")
+    create_logged_in_table()
+    print("Created logged_in table!")
     create_working_table()
     print("Created working table!")
     create_course_categories_table()
@@ -108,5 +122,5 @@ def create_all(path):
     print("Done!")
 
 if __name__ == "__main__":
-    db_path = input("Enter database file path:")
+    db_path = input("Enter database file path: ")
     create_all(db_path)
