@@ -104,7 +104,7 @@ def stop_work():
                         status=400)
 
 
-@app.route("/signup", methods=["POST", "OPTIONS"])
+@app.route("/user/signup", methods=["POST", "OPTIONS"])
 @cross_origin()
 def signup():
     """
@@ -144,7 +144,7 @@ def signup():
         return Response(400, "Incorrect format")
 
 
-@app.route("/login", methods=["POST", "OPTIONS"])
+@app.route("/user/login", methods=["POST", "OPTIONS"])
 @cross_origin()
 def login():
     """
@@ -201,6 +201,41 @@ def get_courses():
         return Response(status=500, response="Server error")
     else:
         return jsonify(courses)
+
+
+@app.route("/user/validate", methods=["POST", "OPTIONS"])
+@cross_origin()
+def validate_user():
+    """
+    Method that handles a user-validate request from the client.
+    i.e.: a user setting his/ hers password
+
+    The data is expected as a JSON of the format:
+
+            {
+                "id": <user_id>
+                "pass": <new_password>
+            }
+    :return:
+    """
+    if request.is_json:
+        data = request.json
+        if "id" in data and "pass" in data:
+            if isinstance(data["id"], str) and isinstance(data["pass"], str):
+                status, msg = dh.validate_user(data["id"], data["pass"])
+
+                if status:
+                    return Response(200, "Success!")
+                elif msg != "Server error":
+                    return Response(400, msg)
+                else:
+                    return Response(500, "Server error")
+            else:
+                return Response(400, "Wrong request")
+        else:
+            return Response(400, "Wrong request")
+    else:
+        return Response(400, "Wrong request")
 
 
 @app.route("/working-users", methods=["GET", "OPTIONS"])
