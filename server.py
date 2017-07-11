@@ -220,10 +220,8 @@ def validate_user():
             }
     :return:
     """
-    if request.method == "OPTIONS":
-        print("OPTIONS")
-        return Response(200)
-    if request.is_json:
+
+    if request.is_json and request.method == "POST":
         print(request.json)
         data = request.json
         print(type(data))
