@@ -3,7 +3,7 @@ from datetime import datetime as dt
 from dateutil import parser as dt_parse
 import datetime
 from passlib.hash import pbkdf2_sha256
-import string
+import secrets
 
 class DatabaseHandler:
 
@@ -343,30 +343,48 @@ class DatabaseHandler:
 
         :param email_hash:       The user's hashed email to verify
         :param password:    The user's password to verify
-        :return:            -> Status :
-                                - True: if the authentication was a success
-                                - False: otherwise
-                            -> Message:
-                                - "": if the authentication was a success
-                                - Some error message: otherwise
+        :return:
+            A dictionary witht the following format:
+                {
+                    "success": <True/ False>,
+                    "id": <user_id>,               (only if successful)
+                    "token": <login_token>,      (only if successful)
+                    "ttl":   <TTL>,              (only if successful)
+                    "message":  <error_message>  (if necessary)
+                }
         """
 
         if not isinstance(email_hash, str):
-            return False, "Server error"
+            return {
+                "success": False,
+                "message": "Incorrect username or password"
+            }
 
         try:
             user = self._get_user_from_hash(email_hash)
         except:
-            return False, "Server error"
+            return {
+                "success":  False,
+                "message": "Server error"
+            }
 
         if user is not None and self._check_pass(password, user[3]):
+            token = secrets.token_hex(64)
             self._execute_INSERT("logged_in",
-                                 ["uid", "last_login", "TTL"],
-                                 user[0], dt.now(), self._DEFAULT_TTL
+                                 ["token","uid", "last_login", "TTL"],
+                                 token, user[0], dt.now(), self._DEFAULT_TTL
             )
-            return True, ""
+            return {
+                "success": True,
+                "id": self._get_sha256_encryption(user[1]),
+                "token": token,
+                "ttl": self._DEFAULT_TTL
+            }
         else:
-            return False, "Incorrect username or password"
+            return {
+                "success": False,
+                "message": "Incorrect username or password"
+            }
 
     def get_courses_list(self):
         """
@@ -415,7 +433,8 @@ class DatabaseHandler:
 
         :param email_hash:        The hashed email of the user
         :param password:          The password we want to set for the user
-        :return:
+        :return:            A dictionary of the format:
+
         """
         user = self._get_user_from_hash(email_hash)
 
@@ -548,39 +567,47 @@ class DatabaseHandler:
 
         return user_row[-1] == 1
 
-    def is_logged_in(self, email_hash):
+    def is_token_still_valid(self, token):
         """
             Method that checks if a user session is still valid
 
-            :param email_hash:  The hashed email, used to identify the user
-            :returns:     -> Status:    - True: if the session is valid
-                                        - False: otherwise
-                          -> Message    - error message: if the session was invalid
-                                        - "": otherwise
+            :param token:  The login token associated with the session
+            :returns:
+                    A dictionary of the format:
+
+                    {
+                        "success": <True/ False>,
+                        "valid":   <True/ False>,       (only if successful)
+                        "message": <Error message>      (only if not successful)
+                    }
         """
 
         try:
-            user = self._get_user_from_hash(email_hash)
+            login_data = self._execute_SELECT("logged_in", "uid="+str(token), ["last_login", "TTL", "id"])
         except:
-            return False, "Server error"
-
-        if user is None:
-            return False, "Wrong email hash"
-
-        try:
-            login_data = self._execute_SELECT("logged_in", "uid="+str(user[0]), ["last_login", "TTL", "id"])
-        except:
-            return False, "Server error"
+            return {
+                "success": False,
+                "message": "Server error"
+            }
 
         if len(login_data) == 0:
-            return False, "Not logged in"
+            return {
+                "success": True,
+                "valid": False
+            }
 
         last_login = dt_parse.parse(login_data[0][0])
         expiry_time = last_login + datetime.timedelta(seconds=login_data[0][1])
 
         if dt.now() < expiry_time:
-            return True, ""
+            return {
+                "success": True,
+                "valid": True
+            }
         else:
             self._execute_DELETE("logged_in", "id=?", login_data[0][2])
-            return False, "Session expired"
+            return {
+                "success": True,
+                "valid": False
+            }
 

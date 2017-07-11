@@ -157,19 +157,21 @@ def login():
                  }
 
       :return:
+            A JSON of the format:
+                {
+                    "success": <True/ False>,
+                    "id": <user_id>,              (only if successful)
+                    "token": <login_token>,      (only if successful)
+                    "ttl":   <TTL>,              (only if successful)
+                    "message":  <error_message>  (only if not successful)
+                }
       """
     if request.is_json:
         data = request.json
         if "email" in data and "password" in data:
             if isinstance(data["email"], str) and isinstance(data["password"], str):
-                status, msg = dh.verify_user(data["email"], data["password"])
-                if status:
-                    return Response(200, "Success")
-                else:
-                    if msg == "Server error":
-                        return Response(500, msg)
-                    else:
-                        return Response(400, msg)
+                result = dh.verify_user(data["email"], data["password"])
+                return jsonify(result)
             else:
                 return Response(400, "Incorrect format")
         else:
@@ -236,6 +238,40 @@ def validate_user():
             return Response(400, "Wrong request")
     else:
         return Response(400, "Wrong request")
+
+
+@app.route("/user/valid-session", methods=["POST", "OPTIONS"])
+@cross_origin()
+def check_session():
+    """
+        Method that checks whether the login session from the user is still valid or not, based on a token
+
+        Expects a JSON of the format:
+            {
+                "token": <token>
+            }
+
+    :return:
+        A  JSON of the format:
+
+            {
+                "success": <True/ False>,
+                "valid":   <True/ False>,       (only if successful)
+                "message": <Error message>      (only if not successful)
+            }
+    """
+    if request.is_json
+        data = request.json
+        if "token" in data:
+            if isinstance(data["token"], str):
+                result = dh.is_token_still_valid(data["token"])
+                return jsonify(result)
+            else:
+                return Response(400, "Invalid format")
+        else:
+            return Response(400, "Invalid format")
+    else:
+        return Response(400, "Invalid format")
 
 
 @app.route("/working-users", methods=["GET", "OPTIONS"])

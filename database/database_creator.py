@@ -33,7 +33,7 @@ def create_users_table():
 def create_logged_in_table():
     query = "CREATE TABLE IF NOT EXISTS " \
             "logged_in (" \
-                "id INTEGER PRIMARY KEY AUTOINCREMENT, " \
+                "token CHAR(64) PRIMARY KEY, " \
                 "uid INTEGER NOT NULL, " \
                 "last_login DATE NOT NULL, " \
                 "TTL INTEGER NOT NULL, " \
