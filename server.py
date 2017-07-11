@@ -260,7 +260,7 @@ def check_session():
                 "message": <Error message>      (only if not successful)
             }
     """
-    if request.is_json
+    if request.is_json:
         data = request.json
         if "token" in data:
             if isinstance(data["token"], str):
