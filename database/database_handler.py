@@ -447,7 +447,7 @@ class DatabaseHandler:
             return False, "User's password already set"
 
         try:
-            self._execute_UPDATE("users", ["password"], [password], "id=?", [user[0]])
+            self._execute_UPDATE("users", ["password"], [self._encrypt_pass(password), ], "id=?", [user[0], ])
         except:
             return False, "Server error"
 
