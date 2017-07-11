@@ -222,7 +222,7 @@ def validate_user():
     """
     if request.is_json:
         data = request.json
-        print(data)
+        print(type(data))
         if "id" in data and "pass" in data:
             if isinstance(data["id"], str) and isinstance(data["pass"], str):
                 status, msg = dh.validate_user(data["id"], data["pass"])
