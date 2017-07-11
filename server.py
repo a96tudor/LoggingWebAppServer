@@ -227,6 +227,8 @@ def validate_user():
             if isinstance(data["id"], str) and isinstance(data["pass"], str):
                 status, msg = dh.validate_user(data["id"], data["pass"])
 
+                print(status, msg)
+
                 if status:
                     return Response(200, "Success!")
                 elif msg != "Server error":
