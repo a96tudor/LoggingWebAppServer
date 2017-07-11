@@ -221,6 +221,7 @@ def validate_user():
     :return:
     """
     if request.is_json:
+        print(request.json)
         data = request.json
         print(type(data))
         if "id" in data and "pass" in data:
