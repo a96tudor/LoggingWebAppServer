@@ -221,7 +221,7 @@ def validate_user():
     :return:
     """
 
-    if request.is_json and request.method == "POST":
+    if request.is_json and request.method == "OPTIONS":
         print(request.json)
         data = request.json
         print(type(data))
