@@ -4,7 +4,7 @@ from flask_cors import CORS, cross_origin
 
 dh = DH("database/SMU-logs.db")
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 
 @app.route("/start-work", methods=["POST", "OPTIONS"])
