@@ -205,7 +205,7 @@ def get_courses():
         return jsonify(courses)
 
 
-@app.route("/user/validate", methods=["POST", "OPTIONS"])
+@app.route("/user-validate", methods=["POST", "OPTIONS"])
 @cross_origin()
 def validate_user():
     """
