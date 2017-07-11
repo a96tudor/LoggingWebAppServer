@@ -232,7 +232,7 @@ def validate_user():
                 if status:
                     return Response(200, "Success!")
                 elif msg != "Server error":
-                    return Response(400, msg)
+                    return Response(400, "test")
                 else:
                     return Response(500, "Server error")
             else:
