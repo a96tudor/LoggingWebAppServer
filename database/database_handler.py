@@ -436,8 +436,9 @@ class DatabaseHandler:
         :return:            A dictionary of the format:
 
         """
+        print("started validation")
         user = self._get_user_from_hash(email_hash)
-
+        print("got user")
         if user is None:
             return False, "Incorrect user hash"
 
