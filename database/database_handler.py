@@ -378,7 +378,7 @@ class DatabaseHandler:
                     "id": self._get_sha256_encryption(email),
                     "message": "User not validated"
                 }
-            elif self._check_pass(password, use [3]):
+            elif self._check_pass(password, user[3]):
                 token = secrets.token_hex(64)
                 self._execute_INSERT("logged_in",
                                     ["token","uid", "last_login", "TTL"],
