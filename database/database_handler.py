@@ -370,29 +370,29 @@ class DatabaseHandler:
             }
 
         if user is not None and self._check_pass(password, user[3]):
-            token = secrets.token_hex(64)
-            self._execute_INSERT("logged_in",
-                                 ["token","uid", "last_login", "TTL"],
-                                 token, user[0], dt.now(), self._DEFAULT_TTL
-            )
-            return {
-                "success": True,
-                "id": self._get_sha256_encryption(user[1]),
-                "name": user[2],
-                "token": token,
-                "ttl": self._DEFAULT_TTL
-            }
-        else:
             if user[3] is None:
                 return {
                     "success": False,
                     "message": "User not validated"
                 }
             else:
+                token = secrets.token_hex(64)
+                self._execute_INSERT("logged_in",
+                                    ["token","uid", "last_login", "TTL"],
+                                    token, user[0], dt.now(), self._DEFAULT_TTL
+                )
                 return {
-                    "success": False,
-                    "message": "Incorrect username or password"
+                    "success": True,
+                    "id": self._get_sha256_encryption(user[1]),
+                    "name": user[2],
+                    "token": token,
+                    "ttl": self._DEFAULT_TTL
                 }
+        else:
+            return {
+                "success": False,
+                "message": "Incorrect username or password"
+            }
 
     def get_courses_list(self):
         """
