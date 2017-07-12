@@ -208,6 +208,7 @@ def get_courses():
 @app.route("/user-validate", methods=["POST", "OPTIONS"])
 @cross_origin()
 def validate_user():
+    return Response(200, "test")
     with app.app_context():
         if request.is_json:
             data = request.json
