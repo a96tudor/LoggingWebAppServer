@@ -198,11 +198,11 @@ def login():
                 result = dh.verify_user(data["email"], data["password"])
                 return jsonify(result)
             else:
-                return Response(400, "Incorrect format")
+                return Response(status=400, response="Incorrect format")
         else:
-            return Response(400, "Incorrect format")
+            return Response(status=400, response="Incorrect format")
     else:
-        return Response(400, "Incorrect format")
+        return Response(status=400, response="Incorrect format")
 
 
 @app.route("/get-courses", methods=["GET", "OPTIONS"])

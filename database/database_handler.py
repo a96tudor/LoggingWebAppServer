@@ -336,50 +336,66 @@ class DatabaseHandler:
 
         return True, ""
 
-    def verify_user(self, email_hash, password):
+    def verify_user(self, email, password):
         """
                 Method that tries to authenticate a given user, based on
             a pair of credentials
 
-        :param email_hash:       The user's hashed email to verify
+        :param email_hash:       The user's email to verify
         :param password:    The user's password to verify
         :return:
             A dictionary witht the following format:
                 {
                     "success": <True/ False>,
-                    "id": <user_id>,               (only if successful)
+                    "id": <user_id>,               (only if successful or if user not validated)
+                    "name": <user's_name>        (only if successful)
                     "token": <login_token>,      (only if successful)
                     "ttl":   <TTL>,              (only if successful)
                     "message":  <error_message>  (if necessary)
                 }
         """
 
-        if not isinstance(email_hash, str):
+
+        if not isinstance(email, str):
             return {
                 "success": False,
                 "message": "Incorrect username or password"
             }
 
         try:
-            user = self._get_user_from_hash(email_hash)
+            user = self._execute_SELECT("users", "email='"+email + "'")
         except:
             return {
                 "success":  False,
                 "message": "Server error"
             }
 
-        if user is not None and self._check_pass(password, user[3]):
-            token = secrets.token_hex(64)
-            self._execute_INSERT("logged_in",
-                                 ["token","uid", "last_login", "TTL"],
-                                 token, user[0], dt.now(), self._DEFAULT_TTL
-            )
-            return {
-                "success": True,
-                "id": self._get_sha256_encryption(user[1]),
-                "token": token,
-                "ttl": self._DEFAULT_TTL
-            }
+        if user is not None and len(user) != 0:
+            user = user[0]
+            if user[3] is None:
+                return {
+                    "success": False,
+                    "id": self._get_sha256_encryption(email),
+                    "message": "User not validated"
+                }
+            elif self._check_pass(password, user[3]):
+                token = secrets.token_hex(64)
+                self._execute_INSERT("logged_in",
+                                    ["token","uid", "last_login", "TTL"],
+                                    token, user[0], dt.now(), self._DEFAULT_TTL
+                )
+                return {
+                    "success": True,
+                    "id": self._get_sha256_encryption(user[1]),
+                    "name": user[2],
+                    "token": token,
+                    "ttl": self._DEFAULT_TTL
+                }
+            else:
+                return {
+                    "success": False,
+                    "message": "Incorrect username or password"
+                }
         else:
             return {
                 "success": False,
