@@ -209,7 +209,7 @@ def get_courses():
 @cross_origin()
 def validate_user():
 
-    with app.test_request_context():
+    with app.app_context():
         if request.is_json:
             data = request.json
             if "id" in data and "pass" in data:
