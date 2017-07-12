@@ -196,6 +196,7 @@ def login():
         if "email" in data and "password" in data:
             if isinstance(data["email"], str) and isinstance(data["password"], str):
                 result = dh.verify_user(data["email"], data["password"])
+                print(result)
                 return jsonify(result)
             else:
                 return Response(400, "Incorrect format")
