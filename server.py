@@ -209,26 +209,27 @@ def get_courses():
 @cross_origin()
 def validate_user():
 
-    if request.is_json:
+    with app.test_request_context():
+        if request.is_json:
+            data = request.json
+            if "id" in data and "pass" in data:
+                if isinstance(data["id"], str) and isinstance(data["pass"], str):
 
-        data = request.json
-        if "id" in data and "pass" in data:
-            if isinstance(data["id"], str) and isinstance(data["pass"], str):
+                    status, msg = dh.validate_user(data["id"], data["pass"])
 
-                status, msg = dh.validate_user(data["id"], data["pass"])
-
-                if status:
-                    return Response(200, "Success")
-                elif msg != "Server error":
-                    return Response(400, msg)
+                    if status:
+                        return Response(200, "Success")
+                    elif msg != "Server error":
+                        return Response(400, msg)
+                    else:
+                        return Response(500, "Server error")
                 else:
-                    return Response(500, "Server error")
+                    return Response(400, "Wrong request")
             else:
                 return Response(400, "Wrong request")
         else:
             return Response(400, "Wrong request")
-    else:
-        return Response(400, "Wrong request")
+
 
 @app.route("/user/valid-session", methods=["POST", "OPTIONS"])
 @cross_origin()
