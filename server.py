@@ -10,7 +10,7 @@ CORS(app)
 @app.route("/user-validate", methods=["POST", "OPTIONS"])
 @cross_origin()
 def validate_user():
-    return Response(200, "test")
+    return Response(status=200, response="test")
     with app.app_context():
         if request.is_json:
             data = request.json
