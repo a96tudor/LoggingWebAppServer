@@ -215,7 +215,7 @@ def validate_user():
         if "id" in data and "pass" in data:
             if isinstance(data["id"], str) and isinstance(data["pass"], str):
 
-                status, msg = dh.verify_user(data["id"], data["pass"])
+                status, msg = dh.validate_user(data["id"], data["pass"])
 
                 if status:
                     return Response(200, "Success")
