@@ -336,12 +336,12 @@ class DatabaseHandler:
 
         return True, ""
 
-    def verify_user(self, email_hash, password):
+    def verify_user(self, email, password):
         """
                 Method that tries to authenticate a given user, based on
             a pair of credentials
 
-        :param email_hash:       The user's hashed email to verify
+        :param email_hash:       The user's email to verify
         :param password:    The user's password to verify
         :return:
             A dictionary witht the following format:
@@ -355,21 +355,23 @@ class DatabaseHandler:
                 }
         """
 
-        if not isinstance(email_hash, str):
+
+        if not isinstance(email, str):
             return {
                 "success": False,
                 "message": "Incorrect username or password"
             }
 
         try:
-            user = self._get_user_from_hash(email_hash)
+            user = self._execute_SELECT("users", "email='"+email + "'")
         except:
             return {
                 "success":  False,
                 "message": "Server error"
             }
 
-        if user is not None and self._check_pass(password, user[3]):
+        if user is not None and len(user) != 0 and self._check_pass(password, user[0][3]):
+            user = user[0][3]
             if user[3] is None:
                 return {
                     "success": False,
