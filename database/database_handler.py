@@ -347,7 +347,7 @@ class DatabaseHandler:
             A dictionary witht the following format:
                 {
                     "success": <True/ False>,
-                    "id": <user_id>,               (only if successful)
+                    "id": <user_id>,               (only if successful or if user not validated)
                     "name": <user's_name>        (only if successful)
                     "token": <login_token>,      (only if successful)
                     "ttl":   <TTL>,              (only if successful)
@@ -370,14 +370,15 @@ class DatabaseHandler:
                 "message": "Server error"
             }
 
-        if user is not None and len(user) != 0 and self._check_pass(password, user[0][3]):
-            user = user[0][3]
+        if user is not None and len(user) != 0:
+            user = user[0]
             if user[3] is None:
                 return {
                     "success": False,
+                    "id": self._get_sha256_encryption(email),
                     "message": "User not validated"
                 }
-            else:
+            elif self._check_pass(password, use [3]):
                 token = secrets.token_hex(64)
                 self._execute_INSERT("logged_in",
                                     ["token","uid", "last_login", "TTL"],
@@ -389,6 +390,11 @@ class DatabaseHandler:
                     "name": user[2],
                     "token": token,
                     "ttl": self._DEFAULT_TTL
+                }
+            else:
+                return {
+                    "success": False,
+                    "message": "Incorrect username or password"
                 }
         else:
             return {

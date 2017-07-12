@@ -199,11 +199,11 @@ def login():
                 print(result)
                 return jsonify(result)
             else:
-                return Response(400, "Incorrect format")
+                return Response(status=400, response="Incorrect format")
         else:
-            return Response(400, "Incorrect format")
+            return Response(status=400, response="Incorrect format")
     else:
-        return Response(400, "Incorrect format")
+        return Response(status=400, response="Incorrect format")
 
 
 @app.route("/get-courses", methods=["GET", "OPTIONS"])
