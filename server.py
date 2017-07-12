@@ -4,7 +4,33 @@ from flask_cors import CORS, cross_origin
 
 dh = DH("database/SMU-logs.db")
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app)
+
+
+@app.route("/user-validate", methods=["POST", "OPTIONS"])
+@cross_origin()
+def validate_user():
+    return Response(200, "test")
+    with app.app_context():
+        if request.is_json:
+            data = request.json
+            if "id" in data and "pass" in data:
+                if isinstance(data["id"], str) and isinstance(data["pass"], str):
+
+                    status, msg = dh.validate_user(data["id"], data["pass"])
+
+                    if status:
+                        return Response(200, "Success")
+                    elif msg != "Server error":
+                        return Response(400, msg)
+                    else:
+                        return Response(500, "Server error")
+                else:
+                    return Response(400, "Wrong request")
+            else:
+                return Response(400, "Wrong request")
+        else:
+            return Response(400, "Wrong request")
 
 
 @app.route("/start-work", methods=["POST", "OPTIONS"])
@@ -203,32 +229,6 @@ def get_courses():
         return Response(status=500, response="Server error")
     else:
         return jsonify(courses)
-
-
-@app.route("/user-validate", methods=["POST", "OPTIONS"])
-@cross_origin()
-def validate_user():
-    return Response(200, "test")
-    with app.app_context():
-        if request.is_json:
-            data = request.json
-            if "id" in data and "pass" in data:
-                if isinstance(data["id"], str) and isinstance(data["pass"], str):
-
-                    status, msg = dh.validate_user(data["id"], data["pass"])
-
-                    if status:
-                        return Response(200, "Success")
-                    elif msg != "Server error":
-                        return Response(400, msg)
-                    else:
-                        return Response(500, "Server error")
-                else:
-                    return Response(400, "Wrong request")
-            else:
-                return Response(400, "Wrong request")
-        else:
-            return Response(400, "Wrong request")
 
 
 @app.route("/user/valid-session", methods=["POST", "OPTIONS"])
