@@ -348,6 +348,7 @@ class DatabaseHandler:
                 {
                     "success": <True/ False>,
                     "id": <user_id>,               (only if successful)
+                    "name": <user's_name>        (only if successful)
                     "token": <login_token>,      (only if successful)
                     "ttl":   <TTL>,              (only if successful)
                     "message":  <error_message>  (if necessary)
@@ -377,14 +378,21 @@ class DatabaseHandler:
             return {
                 "success": True,
                 "id": self._get_sha256_encryption(user[1]),
+                "name": user[2],
                 "token": token,
                 "ttl": self._DEFAULT_TTL
             }
         else:
-            return {
-                "success": False,
-                "message": "Incorrect username or password"
-            }
+            if user[3] is None:
+                return {
+                    "success": False,
+                    "message": "User not validated"
+                }
+            else:
+                return {
+                    "success": False,
+                    "message": "Incorrect username or password"
+                }
 
     def get_courses_list(self):
         """
