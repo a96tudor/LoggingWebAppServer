@@ -10,7 +10,6 @@ CORS(app)
 @app.route("/user-validate", methods=["POST", "OPTIONS"])
 @cross_origin()
 def validate_user():
-    return Response(status=200, response="test")
     with app.app_context():
         if request.is_json:
             data = request.json
@@ -20,17 +19,17 @@ def validate_user():
                     status, msg = dh.validate_user(data["id"], data["pass"])
 
                     if status:
-                        return Response(200, "Success")
+                        return Response(status=200, response="Success")
                     elif msg != "Server error":
-                        return Response(400, msg)
+                        return Response(status=400, response=msg)
                     else:
-                        return Response(500, "Server error")
+                        return Response(status=500, response="Server error")
                 else:
-                    return Response(400, "Wrong request")
+                    return Response(status=400, response="Wrong request")
             else:
-                return Response(400, "Wrong request")
+                return Response(status=400, response="Wrong request")
         else:
-            return Response(400, "Wrong request")
+            return Response(status=400, response="Wrong request")
 
 
 @app.route("/start-work", methods=["POST", "OPTIONS"])
