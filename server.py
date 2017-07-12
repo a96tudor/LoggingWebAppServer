@@ -10,6 +10,17 @@ CORS(app)
 @app.route("/user-validate", methods=["POST", "OPTIONS"])
 @cross_origin()
 def validate_user():
+    """
+        Method that handles a user_validate request. Expects a JSON object of the format:
+
+        {
+            "id": <hashed_email>,
+            "pass": <password>
+        }
+
+    :return:    -
+    """
+
     with app.app_context():
         if request.is_json:
             data = request.json
@@ -155,18 +166,18 @@ def signup():
                 status, msg = dh.add_user(data["email"], data["name"], data["password"], data["admin"] == 1)
 
                 if status:
-                    return Response(200, "Success")
+                    return Response(status=200, response="Success")
                 else:
                     if msg != "Server error":
-                        return Response(400, msg)
+                        return Response(status=400, response=msg)
                     else:
-                        return Response(500, msg)
+                        return Response(status=500, response=msg)
             else:
-                return Response(400, "Incorrect format")
+                return Response(status=400, response="Incorrect format")
         else:
-            return Response(400, "Incorrect format")
+            return Response(status=400, response="Incorrect format")
     else:
-        return Response(400, "Incorrect format")
+        return Response(status=400, response="Incorrect format")
 
 
 @app.route("/user/login", methods=["POST", "OPTIONS"])
@@ -198,11 +209,11 @@ def login():
                 result = dh.verify_user(data["email"], data["password"])
                 return jsonify(result)
             else:
-                return Response(400, "Incorrect format")
+                return Response(status=400, response="Incorrect format")
         else:
-            return Response(400, "Incorrect format")
+            return Response(status=400, response="Incorrect format")
     else:
-        return Response(400, "Incorrect format")
+        return Response(status=400, response="Incorrect format")
 
 
 @app.route("/get-courses", methods=["GET", "OPTIONS"])
@@ -257,11 +268,11 @@ def check_session():
                 result = dh.is_token_still_valid(data["token"])
                 return jsonify(result)
             else:
-                return Response(400, "Invalid format")
+                return Response(status=400, response="Invalid format")
         else:
-            return Response(400, "Invalid format")
+            return Response(status=400, response="Invalid format")
     else:
-        return Response(400, "Invalid format")
+        return Response(status=400, response="Invalid format")
 
 
 @app.route("/working-users", methods=["GET", "OPTIONS"])
