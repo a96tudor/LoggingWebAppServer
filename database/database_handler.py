@@ -198,31 +198,25 @@ class DatabaseHandler:
         con.close()
         return results
 
-    def start_work(self, email, course):
+    def start_work(self, email_hash, course):
         """
 
-        :param email:       The email of the user that wants to start to work
-        :param course:      The course name
-        :return:            - status = True - if it was successful
-                                       False - otherwise
-                            - message   The error message/ a blank string if it was successful
+        :param email_hash:       The email hash of the user that wants to start to work
+        :param course:           The course name
+        :return:                 - status = True - if it was successful
+                                            False - otherwise
+                                 - message   The error message/ a blank string if it was successful
         """
 
         try:
-            con = sql.connect(self._dbName)
-            cur = con.cursor()
-            cur.execute("SELECT id FROM users WHERE email='" + email +"';")
-            results = list(set(cur.fetchall()))
-            con.commit()
-            con.close()
+            user = self._get_user_from_hash(email_hash)
         except:
             return False, "Server error"
 
-        if len(results) != 1:
-            #Failed! No such email or too many entries
+        if user is None:
             return False, "Incorrect email!"
 
-        uid = results[0][0]
+        uid = user[0]
 
         try:
             con = sql.connect(self._dbName)
@@ -250,29 +244,26 @@ class DatabaseHandler:
 
         return True, ""
 
-    def stop_work(self, email, time):
+    def stop_work(self, email_hash, time):
         """
 
-        :param email:           The email of the user that stops working
-        :param time:            The time the user spent working
+        :param email_hash:           The email hash of the user that stops working
+        :param time:                 The time the user spent working
         :return:
         """
 
+
+
         try:
-            con = sql.connect(self._dbName)
-            cur = con.cursor()
-            cur.execute("SELECT id FROM users WHERE email='" + str(email) +"';")
-            results = list(set(cur.fetchall()))
-            con.commit()
-            con.close()
+            user = self._get_user_from_hash(email_hash)
         except:
-            #Something went wrong when doing the query
-            return False, "Server error!"
+            return False, "Server error"
 
-        if len(results) != 1:
-            return False, "Wrong email!"
+        if user is None:
+            return False, "Incorrect email!"
 
-        uid = results[0][0]
+        uid = user[0]
+
         try:
             con = sql.connect(self._dbName)
             cur = con.cursor()
