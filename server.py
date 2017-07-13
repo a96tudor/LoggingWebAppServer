@@ -290,6 +290,7 @@ def logout():
         data = request.json
         if "id" in data and isinstance(data["id"], str):
             result = dh.logout_user(data["id"])
+            print(result)
             return jsonify(result)
         else:
             return Response(status=400, response="Wrong request format")
