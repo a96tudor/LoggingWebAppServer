@@ -266,6 +266,7 @@ def working_users():
 def get_logs():
     return jsonify(dh.get_logs())
 
+
 @app.route("/user/logout", methods=["POST", "OPTIONS"])
 @cross_origin()
 def logout():
@@ -286,7 +287,7 @@ def logout():
             }
 
     """
-    if request.is_json
+    if request.is_json:
         data = request.json
         if "id" in data and isinstance(data["id"], str):
             return jsonify(dh.logout_user(data["id"]))
@@ -294,5 +295,6 @@ def logout():
             return Response(status=400, response="Wrong request format")
     else:
         return Response(status=400, response="Wrong request format")
+
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
