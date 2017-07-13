@@ -16,7 +16,7 @@ def start_work():
         It expects a JSON of the format:
 
             {
-                "email": <email>,
+                "id": <email_hash>,
                 "course": <course_name>
             }
 
@@ -24,9 +24,9 @@ def start_work():
     """
     if request.is_json:
         data = request.get_json(force=True)
-        if "email" in data and "course" in data:
-            if isinstance(data["email"], str) and isinstance(data["course"], str):
-                status, response = dh.start_work(data["email"], data["course"])
+        if "id" in data and "course" in data:
+            if isinstance(data["id"], str) and isinstance(data["course"], str):
+                status, response = dh.start_work(data["id"], data["course"])
                 if status:
                     return Response(response="All good!",
                                     status=200)
@@ -34,14 +34,8 @@ def start_work():
                     if response == "Server error":
                         return Response(response="Server error",
                                         status=500)
-                    if response == "Incorrect email!":
-                        return Response(response="Wrong email",
-                                        status=400)
-                    if response == "Incorrect course name":
-                        return Response(response="Incorrect course name",
-                                        status=400)
-                    if response == "Email already in use!":
-                        return Response(response="Email already in use!",
+                    else:
+                        return Response(response=response,
                                         status=400)
             else:
                 return Response(response="Wrong format",
@@ -63,7 +57,7 @@ def stop_work():
         It expects a request of the format:
 
             {
-                "email": <email>,
+                "id": <email_hash>,
                 "time": <time>
             }
 
@@ -74,9 +68,9 @@ def stop_work():
 
     if request.is_json:
         data = request.json
-        if "email" in data and "time" in data:
-            if isinstance(data["email"], str) and isinstance(data["time"], int):
-                status, response = dh.stop_work(data["email"], data["time"])
+        if "id" in data and "time" in data:
+            if isinstance(data["id"], str) and isinstance(data["time"], int):
+                status, response = dh.stop_work(data["id"], data["time"])
                 if status:
                     return Response(response="All good!",
                                     status=200)
@@ -84,14 +78,8 @@ def stop_work():
                     if response == "Server error":
                         return Response(response="Server error",
                                         status=500)
-                    if response == "Wrong email!":
-                        return Response(response="Wrong email",
-                                        status=400)
-                    if response == "Incorrect time":
-                        return Response(response="Incorrect time",
-                                        status=400)
-                    if response == "Not working":
-                        return Response(response="Not working",
+                    else:
+                        return Response(response=response,
                                         status=400)
             else:
                 return Response(response="Wrong format",
@@ -160,7 +148,8 @@ def login():
             A JSON of the format:
                 {
                     "success": <True/ False>,
-                    "id": <user_id>,              (only if successful)
+                    "id": <user_id>,              (only if successful or user not validated)
+                    "name": <user's_full_name>   (only if successful)
                     "token": <login_token>,      (only if successful)
                     "ttl":   <TTL>,              (only if successful)
                     "message":  <error_message>  (only if not successful)
