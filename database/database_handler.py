@@ -14,7 +14,7 @@ class DatabaseHandler:
         self._courses_table = "courses"
         self._courses_categories_table = "courses_categories"
 
-        self._DEFAULT_TTL = 10  # 2 hours
+        self._DEFAULT_TTL = 7200  # 2 hours
 
         self._dbName = db_path
 
