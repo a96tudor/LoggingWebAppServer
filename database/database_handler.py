@@ -370,18 +370,25 @@ class DatabaseHandler:
                     "message": "User not validated"
                 }
             elif self._check_pass(password, user[3]):
-                token = secrets.token_hex(64)
-                self._execute_INSERT("logged_in",
-                                    ["token","uid", "last_login", "TTL"],
-                                    token, user[0], dt.now(), self._DEFAULT_TTL
-                )
-                return {
-                    "success": True,
-                    "id": self._get_sha256_encryption(user[1]),
-                    "name": user[2],
-                    "token": token,
-                    "ttl": self._DEFAULT_TTL
-                }
+                logged_in = self._execute_SELECT("logged_in", "uid="+str(user[0]))
+                if len(logged_in) == 0:
+                    token = secrets.token_hex(64)
+                    self._execute_INSERT("logged_in",
+                                        ["token","uid", "last_login", "TTL"],
+                                        token, user[0], dt.now(), self._DEFAULT_TTL
+                    )
+                    return {
+                        "success": True,
+                        "id": self._get_sha256_encryption(user[1]),
+                        "name": user[2],
+                        "token": token,
+                        "ttl": self._DEFAULT_TTL
+                    }
+                else:
+                    return {
+                        "success": False,
+                        "message": "User already logged in."
+                    }
             else:
                 return {
                     "success": False,
@@ -617,3 +624,31 @@ class DatabaseHandler:
                 "valid": False
             }
 
+    def logout_user(self, email_hash):
+        """
+
+        :param email_hash:      The hashed email of the user
+        :return:                A dictionary of the format:
+
+                    {
+                        "success": <True/False>,
+                        "message": <ERROR_message>          (only if not successful)
+                    }
+        """
+        try:
+            uid = self._get_user_from_hash(email_hash)
+        except:
+            return {
+                "success": False,
+                "message": "Server error"
+            }
+
+        try:
+            self._execute_DELETE("logged_in", "uid=?", uid)
+        except:
+            return {
+                "success": False,
+                "message": "Server error"
+            }
+
+        return {"success":True}
