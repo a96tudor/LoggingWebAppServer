@@ -640,15 +640,17 @@ class DatabaseHandler:
         except:
             return {
                 "success": False,
-                "message": "Server error"
+                "message": "Server error when finding user"
             }
+
+        print(uid)
 
         try:
             self._execute_DELETE("logged_in", "uid=?", uid)
         except:
             return {
                 "success": False,
-                "message": "Server error"
+                "message": "Server error when deleting"
             }
 
-        return {"success":True}
+        return {"success": True}
