@@ -643,10 +643,8 @@ class DatabaseHandler:
                 "message": "Server error when finding user"
             }
 
-        print(uid)
-
         try:
-            self._execute_DELETE("logged_in", "uid=?", uid)
+            self._execute_DELETE("logged_in", "uid=?", uid[0])
         except:
             return {
                 "success": False,
