@@ -410,7 +410,8 @@ class DatabaseHandler:
                         "courses": [
                             {
                                 "id": <course_id>,
-                                "name": <course_name>
+                                "name": <course_name>,
+                                "url": <url_of_the_course>
                             }
                             {
                                 ...
@@ -421,7 +422,7 @@ class DatabaseHandler:
         """
 
         try:
-            query_results = self._execute_SELECT("courses", None, ["name"])
+            query_results = self._execute_SELECT("courses", None, ["name", "url"])
         except:
             return False, "Server Error!"
 
@@ -434,7 +435,8 @@ class DatabaseHandler:
         for result in query_results:
             partial_result = {
                 "id": id,
-                "name": result[0]
+                "name": result[0],
+                "url": result[1]
             }
             id += 1
             results["courses"].append(partial_result)
@@ -596,7 +598,7 @@ class DatabaseHandler:
         """
 
         try:
-            login_data = self._execute_SELECT("logged_in", "token="+str(token), ["last_login", "TTL", "id"])
+            login_data = self._execute_SELECT("logged_in", "token='"+str(token)+"'", ["last_login", "TTL"])
         except:
             return {
                 "success": False,
@@ -618,7 +620,7 @@ class DatabaseHandler:
                 "valid": True
             }
         else:
-            self._execute_DELETE("logged_in", "id=?", login_data[0][2])
+            self._execute_DELETE("logged_in", "token=?", token)
             return {
                 "success": True,
                 "valid": False

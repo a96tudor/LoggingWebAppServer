@@ -244,6 +244,7 @@ def check_session():
         if "token" in data:
             if isinstance(data["token"], str):
                 result = dh.is_token_still_valid(data["token"])
+                print(data["token"], result)
                 return jsonify(result)
             else:
                 return Response(400, "Invalid format")
