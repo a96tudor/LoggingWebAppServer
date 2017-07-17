@@ -643,6 +643,8 @@ class DatabaseHandler:
                 "message": "Server error when finding user"
             }
 
+        print("USER DETAILS: ", uid)
+        
         try:
             self._execute_DELETE("logged_in", "uid=?", uid[0])
         except:
