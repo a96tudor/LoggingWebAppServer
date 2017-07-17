@@ -596,7 +596,7 @@ class DatabaseHandler:
         """
 
         try:
-            login_data = self._execute_SELECT("logged_in", "uid="+str(token), ["last_login", "TTL", "id"])
+            login_data = self._execute_SELECT("logged_in", "token="+str(token), ["last_login", "TTL", "id"])
         except:
             return {
                 "success": False,
@@ -642,6 +642,8 @@ class DatabaseHandler:
                 "success": False,
                 "message": "Server error when finding user"
             }
+
+        print("USER DETAILS: ", uid)
 
         try:
             self._execute_DELETE("logged_in", "uid=?", uid[0])
