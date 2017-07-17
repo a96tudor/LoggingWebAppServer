@@ -598,7 +598,7 @@ class DatabaseHandler:
         """
 
         try:
-            login_data = self._execute_SELECT("logged_in", "token="+str(token), ["last_login", "TTL", "id"])
+            login_data = self._execute_SELECT("logged_in", "token='"+str(token)+"'", ["last_login", "TTL", "id"])
         except:
             return {
                 "success": False,
