@@ -421,7 +421,7 @@ class DatabaseHandler:
         """
 
         try:
-            query_results = self._execute_SELECT("courses", None, ["name"])
+            query_results = self._execute_SELECT("courses", None, ["name", "url"])
         except:
             return False, "Server Error!"
 
@@ -434,7 +434,8 @@ class DatabaseHandler:
         for result in query_results:
             partial_result = {
                 "id": id,
-                "name": result[0]
+                "name": result[0],
+                "url": result[1]
             }
             id += 1
             results["courses"].append(partial_result)
