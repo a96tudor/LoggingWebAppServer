@@ -62,7 +62,7 @@ class DatabaseHandler:
         """
 
         query = "DELETE FROM " + table + " WHERE " + conds
-        self._execute_query(query, args)
+        self._execute_query(query, *args)
 
     def _execute_INSERT(self, table, cols, *args):
         """
@@ -596,7 +596,7 @@ class DatabaseHandler:
         """
 
         try:
-            login_data = self._execute_SELECT("logged_in", "uid="+str(token), ["last_login", "TTL", "id"])
+            login_data = self._execute_SELECT("logged_in", "token="+str(token), ["last_login", "TTL", "id"])
         except:
             return {
                 "success": False,
