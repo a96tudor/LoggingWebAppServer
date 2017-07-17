@@ -598,7 +598,7 @@ class DatabaseHandler:
         """
 
         try:
-            login_data = self._execute_SELECT("logged_in", "token='"+str(token)+"'", ["last_login", "TTL", "id"])
+            login_data = self._execute_SELECT("logged_in", "token='"+str(token)+"'", ["last_login", "TTL"])
         except:
             return {
                 "success": False,
@@ -620,7 +620,7 @@ class DatabaseHandler:
                 "valid": True
             }
         else:
-            self._execute_DELETE("logged_in", "id=?", login_data[0][2])
+            self._execute_DELETE("logged_in", "token=?", token)
             return {
                 "success": True,
                 "valid": False
