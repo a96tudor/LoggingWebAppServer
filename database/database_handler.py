@@ -410,7 +410,8 @@ class DatabaseHandler:
                         "courses": [
                             {
                                 "id": <course_id>,
-                                "name": <course_name>
+                                "name": <course_name>,
+                                "url": <url_of_the_course>
                             }
                             {
                                 ...
