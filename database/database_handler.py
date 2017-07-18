@@ -5,6 +5,7 @@ import datetime
 from passlib.hash import pbkdf2_sha256
 import secrets
 
+
 class DatabaseHandler:
 
     def __init__(self, db_path):
@@ -852,6 +853,73 @@ class DatabaseHandler:
                     "name": user[0],
                     "user_id": self._get_sha256_encryption(user[2]),
                     "seconds": user[3]
+                }
+            )
+            id += 1
+
+        return result
+
+    def get_courses_list_with_details(self):
+        """
+                Method that returns a list of courses, with details
+
+        :return:    a dictionary of the format:
+
+                    {
+                        "success": <True/ False>,
+                        "courses": [                                                    (only if successful)
+                            {
+                                "id": <entry_id>,
+                                "name": <course_name>,
+                                "url": <course_url>,
+                                "syllabus": <course_syllabus>,
+                                "about": <course_about>,
+                                "notes": <course_notes>,
+                                "commitment_low": <minimum_weekly_commitment>,
+                                "commitment_high": <maximum_weekely_commitment>,
+                                "weeks": <number_of_weeks_required>,
+                                "category": <category_name>
+                            },
+                            {...},
+                            ...
+                        ],
+                        "message": <ERROR_message>                                      (only if not successful)
+                    }
+        """
+
+        query = "SELECT c.name, c.url, c.syllabus, c.about, c.notes, " \
+                    "c.weekly_commitment_low, c.weekly_commitment_low, c.weekly_commitment_high, cc.category_name " \
+                "FROM courses AS c " \
+                "INNER JOIN course_categories AS cc ON c.cid = cc.id;"
+
+        try:
+            courses = self._execute_SELECT_from_query(query)
+        except:
+            return {
+                "success": False,
+                "message": "Server error"
+            }
+
+        result = {
+            "success": True,
+            "courses": list()
+        }
+
+        id = 0
+
+        for course in courses:
+            result["courses"].append(
+                {
+                    "id": id,
+                    "name": result[0],
+                    "url": result[1],
+                    "syllabus": result[2],
+                    "about": result[3],
+                    "notes": result[4],
+                    "commitment_low": result[5],
+                    "commitment_high": result[6],
+                    "weeks": result[7],
+                    "category": result[8]
                 }
             )
             id += 1
