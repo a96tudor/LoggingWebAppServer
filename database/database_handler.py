@@ -711,10 +711,10 @@ class DatabaseHandler:
         query = "SELECT c.name, c.url, l.started_at, l.duration, l.logged_at " \
                 "FROM logs AS l " \
                 "INNER JOIN courses AS c ON l.cid = c.id " \
-                "WHERE l.uid=?;"
+                "WHERE l.uid=" + str(uid) + ";"
 
         try:
-            results = self._execute_SELECT_from_query(query, uid)
+            results = self._execute_SELECT_from_query(query)
         except:
             return {
                 "success": False,
