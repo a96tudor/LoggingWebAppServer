@@ -729,12 +729,15 @@ class DatabaseHandler:
         id = 0
 
         for result in results:
+            if result[2] is None or result[4] is None:
+                continue
+
             response["history"].append(
                 {
                     "id": id,
                     "course_name": result[0],
                     "course_url": result[1],
-                    "started_at": result[2] if result[2] is not None else dt.utcfromtimestamp(0),
+                    "started_at": result[2],
                     "logged_at": result[4],
                     "seconds": result[3]
                 }
