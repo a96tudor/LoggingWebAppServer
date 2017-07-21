@@ -697,7 +697,7 @@ class DatabaseHandler:
         except:
             return {
                     "success": False,
-                    "message": "Server error"
+                    "message": "Server error - hash"
             }
 
         if user is None:
@@ -718,7 +718,7 @@ class DatabaseHandler:
         except:
             return {
                 "success": False,
-                "message": "Server error"
+                "message": "Server error - SELECT"
             }
 
         response = {
