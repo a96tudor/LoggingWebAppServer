@@ -734,7 +734,7 @@ class DatabaseHandler:
                     "id": id,
                     "course_name": result[0],
                     "course_url": result[1],
-                    "started_at": result[2],
+                    "started_at": result[2] if result[2] is not None else dt.utcfromtimestamp(0),
                     "logged_at": result[4],
                     "seconds": result[3]
                 }
@@ -742,7 +742,7 @@ class DatabaseHandler:
             id += 1
 
         response["history"] = sorted(response["history"],
-                                     key=lambda x: dt.utcfromtimestamp(0) if x["started_at"] is None else x["started_at"])
+                                     key=lambda x: x["started_at"])
         return response
 
     def get_stats_for_user(self, email_for_request, email_for_user):
