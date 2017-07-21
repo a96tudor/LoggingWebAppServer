@@ -211,6 +211,7 @@ def get_courses():
         }
     :return:
     """
+
     status, courses = dh.get_courses_list()
 
     if not status:
@@ -351,7 +352,7 @@ def user_history():
                                 {
                                     "id": <entry_id>,
                                     "course_name": <Course_name>,
-                                    "course_url": <course_url>,
+                                    "cour"se_url": <course_url>,
                                     "started_at": <started_at>,
                                     "logged_at": <time_entry_was_logged>,
                                     "seconds":  <no_of_seconds_spent_working>
@@ -373,6 +374,7 @@ def user_history():
             return Response(status=400, response="Wrong format")
     else:
         return Response(status=400, response="Wrong format")
+
 
 @app.route("/stats/leaderboard", methods=["GET", "OPTIONS"])
 @cross_origin()
