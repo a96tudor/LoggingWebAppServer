@@ -50,7 +50,7 @@ def create_working_table():
                 "working INTEGER NOT NULL DEFAULT 0, " \
                 "since DATE, " \
                 "cid INTEGER NOT NULL, " \
-                "time INTEGER NOT NULL DEFAULT 0" \
+                "time INTEGER NOT NULL DEFAULT 0, " \
                 "FOREIGN KEY(uid) REFERENCES users(id), " \
                 "FOREIGN KEY(cid) REFERENCES courses(id)" \
             ");"
