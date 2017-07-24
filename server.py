@@ -381,5 +381,59 @@ def user_history():
 def get_leaderboard():
     return jsonify(dh.get_leaderboard())
 
+
+@app.route("/user/is-working", methods=["GET", "OPTIONS"])
+@cross_origin()
+def is_working():
+    """
+          Function that handles a request for getting information about what a user is currently working on
+
+          The request URL has to have the format:
+
+                https://www.neural-guide.me/user/is-working?id=<user_id>
+
+    :return:        A JSON of the format:
+
+                {
+                    "success": <True/ False>,
+                    "working": <True/ False>,       (only if successful)
+                    "course": <course_name>,        (only if successful and working)
+                    "time": <no_of_seconds_working> (only if successful and working)
+                    "message": <ERROR_message>      (only if not successful)
+                }
+    """
+    try:
+        user_id = request.args.get("id")
+    except:
+        return Response(status=400, response="Invalid request arguments")
+
+    return jsonify(dh.user_is_working(user_id))
+
+
+@app.route("/working/update-time", methods=["PUT", "OPTIONS"])
+@cross_origin()
+def update_time():
+    """
+          Function that handles a request for updating the working time for user
+
+          Request URL has to be of the format:
+
+                https://www.neural-guide.me/working/update-time?id=<user_id>&time<time_in_seconds>
+
+    :return:    A Response based on the result of the update
+    """
+    try:
+        id = request.args.get("id")
+        time = int(request.args.get("time"))
+    except:
+        return Response(status=400, response="Invalid request arguments")
+
+    status, msg = dh.update_time(id, time)
+
+    if status:
+        return Response(status=200, response="All good")
+    else:
+        return Response(status=400, response=msg)
+
 if __name__ == "__main__":
     app.run(port=5000, debug=True)

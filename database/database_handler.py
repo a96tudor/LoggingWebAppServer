@@ -930,3 +930,102 @@ class DatabaseHandler:
             id += 1
 
         return result
+
+    def add_user(self, id_adder, email, full_name, admin):
+        """
+
+        :param id_adder:            The id of the person adding the user (Has to be an admin)
+        :param email:               The email of the person that is added
+        :param full_name:           The full name of the person that is added
+        :param admin:               Whether the person that is added is an admin/ not (1/0)
+
+        :return:                    A dictionary of the format:
+                                {
+                                    "success": <True/False>,
+                                    "user_id": <the id of the new user, in order to generate the validation link>, (only if successful)
+                                    "message": <ERROR message>          (only if not successful)
+                                }
+        """
+        if not self.is_admin(id_adder):
+            return {"success": False, "message": "You don't have enough rights for this."}
+
+        try:
+            self._execute_INSERT("users", ["email", "full_name", "admin"], (email, full_name, admin))
+        except:
+            return {"success": False, "message": "Server error"}
+
+        return {
+            "success": True,
+            "user_id": self._get_sha256_encryption(email)
+        }
+
+    def user_is_working(self, id_user):
+        """
+                Method that checks whether an user is working or not
+
+        :param id_user:     the id of the user
+        :return:            A dictionary of the form:
+                        {
+                            "success": <True/ False>,
+                            "working": <True/ False>,       (only if successful)
+                            "course": <course_name>,        (only if successful and working)
+                            "time": <no_of_seconds_working> (only if successful and working)
+                            "message": <ERROR_message>      (only if not successful)
+                        }
+        """
+        try:
+           user = self._get_user_from_hash(id_user)
+        except:
+            return {"success": False, "message": "Server error"}
+
+        if user is None:
+            return {"success": False, "message": "Invalid user id"}
+
+        try:
+            query = "SELECT c.course_name, w.time " \
+                    "FROM working AS w " \
+                    "INNER JOIN courses AS c " \
+                        "ON w.cid = c.id " \
+                    "WHERE w.uid=? AND w.working=1"
+
+            result = self._execute_SELECT_from_query(query, user[0])
+        except:
+            return {"success": False, "message": "Server error"}
+
+        if len(result) == 0:
+            return {"success": True, "working":False}
+
+        return {
+            "success": True,
+            "working": True,
+            "course": result[0][0],
+            "time": result[0][1]
+        }
+
+    def update_time(self, id_user, time):
+        """
+            Method that updates the time data for a working user
+
+        :param id_user:     The id of the working user
+        :param time:        The working time  (in seconds)
+        :return:            status - True if successful
+                                   - False if not
+                            message - the ERROR message / "" if successful
+        """
+        try:
+           user = self._get_user_from_hash(id_user)
+        except:
+            return False, "Server error"
+
+        if user is None:
+            return False, "Invalid user ID"
+
+        id = user[0]
+
+        try:
+            self._execute_UPDATE("working", ["time"], [time], "uid=?", [id])
+        except:
+            return False, "User not working"
+
+
+
