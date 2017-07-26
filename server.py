@@ -345,8 +345,9 @@ def user_history():
                 "asking": <id_of_the_user_asking_for_the_data>,
                 "user": <id_of_the_user_we_ask_for>
             }
-    :return:    A rendered template with the user history
+    :return:    A rendered template with the user's history (if the asking user has enough rights)
     """
+
     if request.is_json:
         data = request.json
         if "asking" in data and "user" in data:
