@@ -448,7 +448,7 @@ def courses():
 def leaderboard():
     data = dh.get_leaderboard()
     print(data["leader_board"])
-    return render_template("html/stats/leaderboard.html", data=data["leader_board"])
+    return render_template("html/stats/leaderboard.html", data=data)
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
