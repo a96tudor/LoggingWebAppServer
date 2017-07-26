@@ -757,8 +757,8 @@ class DatabaseHandler:
                     "id": id,
                     "course_name": result[0],
                     "course_url": result[1],
-                    "started_at": result[2],
-                    "logged_at": result[4],
+                    "started_at": result[2][:-7],
+                    "logged_at": result[4][:-7],
                     "time": time.strftime('%H:%M:%S', time.gmtime(result[3]))
                 })
 
