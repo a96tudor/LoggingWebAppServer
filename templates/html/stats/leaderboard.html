@@ -1,6 +1,4 @@
-<script type="text/javascript">
-  fillInTemplate("leaderboard");
-</script>
+{% if data %}
 
 <h1 class="title">
   Leaderboard
@@ -16,7 +14,33 @@
       </tr>
     </thead>
     <tbody id="leaderboard-body">
+        {% for item in data %}
+            <tr>
+                <td>
+                    {% if item["id"] %}
+                        {{item["id"]}}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
 
+                <td>
+                    {% if item["name"] %}
+                        {{item["name"]}}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if item["seconds"] %}
+                        {{item["seconds"]}}
+                    {% else %}
+                        0
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
     </tbody>
     <tfoot>
       <tr class="total-leaderboard">
@@ -26,3 +50,11 @@
     </tfoot>
   </table>
 </div>
+
+{% else %}
+
+<h1 class="error-message">
+    Resource unavailable for the moment.
+</h1>
+
+{% endif %}

@@ -371,25 +371,40 @@ class DatabaseHandler:
                     "message": "User not validated"
                 }
             elif self._check_pass(password, user[3]):
-                logged_in = self._execute_SELECT("logged_in", "uid="+str(user[0]))
-                if len(logged_in) == 0:
+
+                def get_new_token(ttl):
+                    """
+                        Inner function that creates
+                    :return:
+                    """
                     token = secrets.token_hex(64)
                     self._execute_INSERT("logged_in",
-                                        ["token","uid", "last_login", "TTL"],
-                                        token, user[0], dt.now(), self._DEFAULT_TTL
-                    )
+                                         ["token", "uid", "last_login", "TTL"],
+                                         token, user[0], dt.now(), self._DEFAULT_TTL
+                                         )
                     return {
                         "success": True,
                         "id": self._get_sha256_encryption(user[1]),
                         "name": user[2],
                         "token": token,
-                        "ttl": self._DEFAULT_TTL
+                        "ttl": ttl
                     }
+
+                logged_in = self._execute_SELECT("logged_in", "uid="+str(user[0]), ["token"])
+                if len(logged_in) == 0:
+                    return get_new_token(self._DEFAULT_TTL)
                 else:
-                    return {
-                        "success": False,
-                        "message": "User already logged in."
-                    }
+                    valid = self.is_token_still_valid(logged_in[0][0])
+                    if valid["sucess"] and valid["valid"]:
+                            return {
+                                "success": True,
+                                "id": self._get_sha256_encryption(user[[1]]),
+                                "name": user[2],
+                                "token": logged_in[0][0],
+                                "ttl": self._DEFAULT_TTL
+                            }
+                    else:
+                        return get_new_token(self._DEFAULT_TTL)
             else:
                 return {
                     "success": False,
@@ -849,17 +864,15 @@ class DatabaseHandler:
             "leader_board": list()
         }
 
-        id = 0
+        id = 1
 
         for user in users:
-            result["leader_board"].append(
-                {
+            result["leader_board"].append( {
                     "id": id,
                     "name": user[0],
                     "user_id": self._get_sha256_encryption(user[2]),
                     "seconds": user[3]
-                }
-            )
+            })
             id += 1
 
         return result
@@ -893,7 +906,7 @@ class DatabaseHandler:
         """
 
         query = "SELECT c.name, c.url, c.syllabus, c.about, c.notes, " \
-                    "c.weekly_commitment_low, c.weekly_commitment_low, c.weekly_commitment_high, cc.category_name " \
+                    "c.weekly_commitment_low, c.weekly_commitment_high, c.number_weeks, cc.category_name " \
                 "FROM courses AS c " \
                 "INNER JOIN course_categories AS cc ON c.cid = cc.id;"
 
@@ -910,21 +923,21 @@ class DatabaseHandler:
             "courses": list()
         }
 
-        id = 0
+        id = 1
 
         for course in courses:
             result["courses"].append(
                 {
                     "id": id,
-                    "name": result[0],
-                    "url": result[1],
-                    "syllabus": result[2],
-                    "about": result[3],
-                    "notes": result[4],
-                    "commitment_low": result[5],
-                    "commitment_high": result[6],
-                    "weeks": result[7],
-                    "category": result[8]
+                    "name": course[0],
+                    "url": course[1],
+                    "syllabus": course[2],
+                    "about": course[3],
+                    "notes": course[4],
+                    "commitment_low": course[5],
+                    "commitment_high": course[6],
+                    "weeks": course[7],
+                    "category": course[8]
                 }
             )
             id += 1

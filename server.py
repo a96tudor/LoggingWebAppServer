@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, Response
+from flask import Flask, request, jsonify, Response, render_template
 from database.database_handler import DatabaseHandler as DH
 from flask_cors import CORS, cross_origin
 
@@ -434,6 +434,21 @@ def update_time():
         return Response(status=200, response="All good")
     else:
         return Response(status=400, response=msg)
+
+
+@app.route("/courses", methods=["GET", "OPTIONS"])
+@cross_origin()
+def courses():
+    data = dh.get_courses_list_with_details()
+    return render_template("html/courses.html", data=data["courses"])
+
+
+@app.route("/leaderboard", methods=["GET", "OPTIONS"])
+@cross_origin()
+def leaderboard():
+    data = dh.get_leaderboard()
+    print(data["leader_board"])
+    return render_template("html/stats/leaderboard.html", data=data["leader_board"])
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
