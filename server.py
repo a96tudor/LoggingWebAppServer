@@ -211,6 +211,7 @@ def get_courses():
         }
     :return:
     """
+
     status, courses = dh.get_courses_list()
 
     if not status:
@@ -296,6 +297,89 @@ def logout():
             return Response(status=400, response="Wrong request format")
     else:
         return Response(status=400, response="Wrong request format")
+
+
+@app.route("/user/stats/general", methods=["POST", "OPTIONS"])
+@cross_origin()
+def user_stats():
+    """
+        Method that handles a request for user statistics.
+
+        It expects a POST request containing a JSON with the following format:
+
+            {
+                "asking": <id_of_the_user_asking_for_the_data>,
+                "user": <id_of_the_user_we_ask_for>
+            }
+    :return:
+        A JSON of the format:
+
+            {
+                "success": <True/ False>,
+                "seconds": <no_of_seconds_worked>,      (only if successful)
+                "message": <ERROR_message>              (only if not successful)
+            }
+    """
+    if request.is_json:
+        data = request.json
+        if "asking" in data and "user" in data:
+            if isinstance(data["asking"], str) and isinstance(data["user"], str):
+                return jsonify(dh.get_stats_for_user(data["asking"], data["user"]))
+            else:
+                return Response(status=400, response="Wrong format")
+        else:
+            return Response(status=400, response="Wrong format")
+    else:
+        return Response(status=400, response="Wrong format")
+
+
+@app.route("/user/stats/history", methods=["POST", "OPTIONS"])
+@cross_origin()
+def user_history():
+    """
+        Method that handles a request for user statistics.
+
+        It expects a POST request containing a JSON with the following format:
+
+            {
+                "asking": <id_of_the_user_asking_for_the_data>,
+                "user": <id_of_the_user_we_ask_for>
+            }
+    :return:
+                        {
+                            "success": <True/False>,
+                            "history": [                                        (only if successful)
+                                {
+                                    "id": <entry_id>,
+                                    "course_name": <Course_name>,
+                                    "cour"se_url": <course_url>,
+                                    "started_at": <started_at>,
+                                    "logged_at": <time_entry_was_logged>,
+                                    "seconds":  <no_of_seconds_spent_working>
+                                },
+                                { ... },
+                                ...
+                            ],
+                            "message": <ERROR_message>                          (only if not successful)
+                        }
+    """
+    if request.is_json:
+        data = request.json
+        if "asking" in data and "user" in data:
+            if isinstance(data["asking"], str) and isinstance(data["user"], str):
+                return jsonify(dh.get_history_for_user(data["asking"], data["user"]))
+            else:
+                return Response(status=400, response="Wrong format")
+        else:
+            return Response(status=400, response="Wrong format")
+    else:
+        return Response(status=400, response="Wrong format")
+
+
+@app.route("/stats/leaderboard", methods=["GET", "OPTIONS"])
+@cross_origin()
+def get_leaderboard():
+    return jsonify(dh.get_leaderboard())
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)

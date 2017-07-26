@@ -5,6 +5,7 @@ import datetime
 from passlib.hash import pbkdf2_sha256
 import secrets
 
+
 class DatabaseHandler:
 
     def __init__(self, db_path):
@@ -656,3 +657,273 @@ class DatabaseHandler:
             }
 
         return {"success": True}
+
+    def get_history_for_user(self, email_for_request, email_for_user):
+        """
+            Method that gets the history for a user, but the request is made by another user
+
+        :param email_for_request:       The email hash of the user making the request.
+                                        It will only work if the user is an admin
+
+        :param email_for_user:          The email hash of the user we want the history for
+
+        :return:                        A dictionary of the format:
+
+                        {
+                            "success": <True/False>,
+                            "history": [                                        (only if successful)
+                                {
+                                    "id": <entry_id>,
+                                    "course_name": <Course_name>,
+                                    "course_url": <course_url>,
+                                    "started_at": <started_at>,
+                                    "logged_at": <time_entry_was_logged>,
+                                    "seconds":  <no_of_seconds_spent_working>
+                                },
+                                { ... },
+                                ...
+                            ],
+                            "message": <ERROR_message>                          (only if not successful)
+                        }
+        """
+        if not self.is_admin(email_for_request) and email_for_request != email_for_user:
+            return {
+                "success": False,
+                "message": "Not enough privileges"
+            }
+
+        try:
+            user = self._get_user_from_hash(email_for_user)
+        except:
+            return {
+                    "success": False,
+                    "message": "Server error - hash"
+            }
+
+        if user is None:
+            return {
+                "success": False,
+                "message": "Invalid user ID"
+            }
+
+        uid = user[0]
+
+        query = "SELECT c.name, c.url, l.started_at, l.duration, l.logged_at " \
+                "FROM logs AS l " \
+                "INNER JOIN courses AS c ON l.cid = c.id " \
+                "WHERE l.uid=" + str(uid) + ";"
+
+        try:
+            results = self._execute_SELECT_from_query(query)
+        except:
+            return {
+                "success": False,
+                "message": "Server error - SELECT"
+            }
+
+        response = {
+            "success": True,
+            "history": list()
+        }
+
+        id = 0
+
+        for result in results:
+            response["history"].append(
+                {
+                    "id": id,
+                    "course_name": result[0],
+                    "course_url": result[1],
+                    "started_at": result[2],
+                    "logged_at": result[4],
+                    "seconds": result[3]
+                }
+            )
+            id += 1
+
+        response["history"] = sorted(response["history"],
+                                     key=lambda x: dt.utcfromtimestamp(0) if x["started_at"] is None else x["started_at"])
+        return response
+
+    def get_stats_for_user(self, email_for_request, email_for_user):
+        """
+
+        :param email_for_request:       The email hash of the user making the request.
+                                        It will only work if the user is an admin
+
+        :param email_for_user:          The email hash of the user we want the history for
+
+        :return:                        A dictionary of the format:
+
+                                    {
+                                        "success": <True/ False>,
+                                        "seconds": <no_of_seconds_worked>,      (only if successful)
+                                        "message": <ERROR_message>              (only if not successful)
+                                    }
+        """
+        if not self.is_admin(email_for_request) and email_for_request != email_for_user:
+            return {
+                "success": False,
+                "message": "Not enough privileges"
+            }
+
+        try:
+            user = self._get_user_from_hash(email_for_user)
+        except:
+            return {
+                    "success": False,
+                    "message": "Server error"
+            }
+
+        if user is None:
+            return {
+                "success": False,
+                "message": "Invalid user ID"
+            }
+
+        uid = user[0]
+
+        query = "SELECT SUM(l.duration) FROM logs AS l WHERE l.uid=?;"
+
+        try:
+            results = self._execute_SELECT_from_query(query, uid)
+        except:
+            return {
+                "success": False,
+                "message": "Server error"
+            }
+
+        if len(results) == 0:
+            return {
+                "success": True,
+                "seconds": 0
+            }
+
+        return {
+            "success": True,
+            "seconds": results[0][0]
+        }
+
+    def get_leaderboard(self):
+        """
+
+        :return:    The leader board based on the data we have so far in the database.
+
+                    It will be an dictionary of the format:
+                            {
+                                "success": <True/False>,
+                                "leader_board": [                               (only if successful)
+                                    {
+                                        "id": <entry_id>,
+                                        "name": <user's_full_name>,
+                                        "user_id": <user's_email_hash>,
+                                        "seconds": <number_of_seconds_worked>
+                                    },
+                                    {...},
+                                    ...
+                                ],
+                                "message": <ERROR_message>                      (only if not successful)
+
+                            }
+        """
+        query = "SELECT u.full_name, u.id, u.email, TOTAL(l.duration) AS tot " \
+                "FROM users AS u " \
+                "LEFT OUTER JOIN logs AS l ON u.id = l.uid " \
+                "GROUP BY u.id " \
+                "ORDER BY tot DESC;"
+
+        try:
+            users = sorted(self._execute_SELECT_from_query(query),
+                            key=lambda user: -1.0 * user[3])
+        except:
+            return {
+                "success": False,
+                "message": "Server error"
+            }
+
+        result = {
+            "success": True,
+            "leader_board": list()
+        }
+
+        id = 0
+
+        for user in users:
+            result["leader_board"].append(
+                {
+                    "id": id,
+                    "name": user[0],
+                    "user_id": self._get_sha256_encryption(user[2]),
+                    "seconds": user[3]
+                }
+            )
+            id += 1
+
+        return result
+
+    def get_courses_list_with_details(self):
+        """
+                Method that returns a list of courses, with details
+
+        :return:    a dictionary of the format:
+
+                    {
+                        "success": <True/ False>,
+                        "courses": [                                                    (only if successful)
+                            {
+                                "id": <entry_id>,
+                                "name": <course_name>,
+                                "url": <course_url>,
+                                "syllabus": <course_syllabus>,
+                                "about": <course_about>,
+                                "notes": <course_notes>,
+                                "commitment_low": <minimum_weekly_commitment>,
+                                "commitment_high": <maximum_weekely_commitment>,
+                                "weeks": <number_of_weeks_required>,
+                                "category": <category_name>
+                            },
+                            {...},
+                            ...
+                        ],
+                        "message": <ERROR_message>                                      (only if not successful)
+                    }
+        """
+
+        query = "SELECT c.name, c.url, c.syllabus, c.about, c.notes, " \
+                    "c.weekly_commitment_low, c.weekly_commitment_low, c.weekly_commitment_high, cc.category_name " \
+                "FROM courses AS c " \
+                "INNER JOIN course_categories AS cc ON c.cid = cc.id;"
+
+        try:
+            courses = self._execute_SELECT_from_query(query)
+        except:
+            return {
+                "success": False,
+                "message": "Server error"
+            }
+
+        result = {
+            "success": True,
+            "courses": list()
+        }
+
+        id = 0
+
+        for course in courses:
+            result["courses"].append(
+                {
+                    "id": id,
+                    "name": result[0],
+                    "url": result[1],
+                    "syllabus": result[2],
+                    "about": result[3],
+                    "notes": result[4],
+                    "commitment_low": result[5],
+                    "commitment_high": result[6],
+                    "weeks": result[7],
+                    "category": result[8]
+                }
+            )
+            id += 1
+
+        return result
