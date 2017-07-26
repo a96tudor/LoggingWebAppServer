@@ -687,6 +687,7 @@ class DatabaseHandler:
 
                         {
                             "success": <True/False>,
+                            "user": <name_of_the_user_whose_history_we_have>    (only if successful)
                             "history": [                                        (only if successful)
                                 {
                                     "id": <entry_id>,
@@ -694,11 +695,12 @@ class DatabaseHandler:
                                     "course_url": <course_url>,
                                     "started_at": <started_at>,
                                     "logged_at": <time_entry_was_logged>,
-                                    "seconds":  <no_of_seconds_spent_working>
+                                    "time":  <no_of_seconds_spent_working>
                                 },
                                 { ... },
                                 ...
                             ],
+                            "total": <total_worked_by_the_user>                 (only if successful)
                             "message": <ERROR_message>                          (only if not successful)
                         }
         """
@@ -738,11 +740,13 @@ class DatabaseHandler:
             }
 
         response = {
+            "user": user[2],
             "success": True,
             "history": list()
         }
 
         id = 0
+        total = 0
 
         for result in results:
             if result[2] is None or result[4] is None:
@@ -753,12 +757,15 @@ class DatabaseHandler:
                     "id": id,
                     "course_name": result[0],
                     "course_url": result[1],
-                    "started_at": result[2],
+                    "started_at": time.strftime("%m/%d/%Y %H:%M",result[2]),
                     "logged_at": result[4],
-                    "seconds": result[3]
+                    "time": time.strftime('%H:%M:%S', time.gmtime(user[3]))
                 }
             )
             id += 1
+            total += result[3]
+
+        response["total"] = time.strftime('%H:%M:%S', time.gmtime(total))
 
         response["history"] = sorted(response["history"],
                                      key=lambda x: x["started_at"])
