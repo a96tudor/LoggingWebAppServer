@@ -4,6 +4,7 @@ from dateutil import parser as dt_parse
 import datetime
 from passlib.hash import pbkdf2_sha256
 import secrets
+import time
 
 
 class DatabaseHandler:
@@ -840,6 +841,7 @@ class DatabaseHandler:
                                     {...},
                                     ...
                                 ],
+                                "total":   <total_hrs_worked>                   (only if successful
                                 "message": <ERROR_message>                      (only if not successful)
 
                             }
@@ -865,15 +867,19 @@ class DatabaseHandler:
         }
 
         id = 1
+        total = 0
 
         for user in users:
             result["leader_board"].append( {
                     "id": id,
                     "name": user[0],
                     "user_id": self._get_sha256_encryption(user[2]),
-                    "seconds": user[3]
+                    "seconds": time.strftime('%H:%M:%S', time.gmtime(user[3]))
             })
             id += 1
+            total += user[3]
+
+        result["total"] = time.strftime('%H:%M:%S', time.gmtime(total))
 
         return result
 

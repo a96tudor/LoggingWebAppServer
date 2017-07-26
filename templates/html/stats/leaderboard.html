@@ -36,7 +36,7 @@
                     {% if item["seconds"] %}
                         {{item["seconds"]}}
                     {% else %}
-                        0
+                        00:00:00
                     {% endif %}
                 </td>
             </tr>
@@ -45,7 +45,9 @@
     <tfoot>
       <tr class="total-leaderboard">
         <td colspan="2"> Total worked: </td>
-        <td id = "total"></td>
+        <td id = "total">
+
+        </td>
       </tr>
     </tfoot>
   </table>
