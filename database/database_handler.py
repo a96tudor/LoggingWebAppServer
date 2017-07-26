@@ -4,6 +4,7 @@ from dateutil import parser as dt_parse
 import datetime
 from passlib.hash import pbkdf2_sha256
 import secrets
+import time
 
 
 class DatabaseHandler:
@@ -371,25 +372,40 @@ class DatabaseHandler:
                     "message": "User not validated"
                 }
             elif self._check_pass(password, user[3]):
-                logged_in = self._execute_SELECT("logged_in", "uid="+str(user[0]))
-                if len(logged_in) == 0:
+
+                def get_new_token(ttl):
+                    """
+                        Inner function that creates
+                    :return:
+                    """
                     token = secrets.token_hex(64)
                     self._execute_INSERT("logged_in",
-                                        ["token","uid", "last_login", "TTL"],
-                                        token, user[0], dt.now(), self._DEFAULT_TTL
-                    )
+                                         ["token", "uid", "last_login", "TTL"],
+                                         token, user[0], dt.now(), self._DEFAULT_TTL
+                                         )
                     return {
                         "success": True,
                         "id": self._get_sha256_encryption(user[1]),
                         "name": user[2],
                         "token": token,
-                        "ttl": self._DEFAULT_TTL
+                        "ttl": ttl
                     }
+
+                logged_in = self._execute_SELECT("logged_in", "uid="+str(user[0]), ["token"])
+                if len(logged_in) == 0:
+                    return get_new_token(self._DEFAULT_TTL)
                 else:
-                    return {
-                        "success": False,
-                        "message": "User already logged in."
-                    }
+                    valid = self.is_token_still_valid(logged_in[0][0])
+                    if valid["success"] and valid["valid"]:
+                            return {
+                                "success": True,
+                                "id": self._get_sha256_encryption(user[[1]]),
+                                "name": user[2],
+                                "token": logged_in[0][0],
+                                "ttl": self._DEFAULT_TTL
+                            }
+                    else:
+                        return get_new_token(self._DEFAULT_TTL)
             else:
                 return {
                     "success": False,
@@ -671,6 +687,7 @@ class DatabaseHandler:
 
                         {
                             "success": <True/False>,
+                            "user": <name_of_the_user_whose_history_we_have>    (only if successful)
                             "history": [                                        (only if successful)
                                 {
                                     "id": <entry_id>,
@@ -678,11 +695,12 @@ class DatabaseHandler:
                                     "course_url": <course_url>,
                                     "started_at": <started_at>,
                                     "logged_at": <time_entry_was_logged>,
-                                    "seconds":  <no_of_seconds_spent_working>
+                                    "time":  <no_of_seconds_spent_working>
                                 },
                                 { ... },
                                 ...
                             ],
+                            "total": <total_worked_by_the_user>                 (only if successful)
                             "message": <ERROR_message>                          (only if not successful)
                         }
         """
@@ -722,11 +740,13 @@ class DatabaseHandler:
             }
 
         response = {
+            "user": user[2],
             "success": True,
             "history": list()
         }
 
         id = 0
+        total = 0
 
         for result in results:
             if result[2] is None or result[4] is None:
@@ -737,12 +757,15 @@ class DatabaseHandler:
                     "id": id,
                     "course_name": result[0],
                     "course_url": result[1],
-                    "started_at": result[2],
-                    "logged_at": result[4],
-                    "seconds": result[3]
-                }
-            )
+                    "started_at": result[2][:-7],
+                    "logged_at": result[4][:-7],
+                    "time": time.strftime('%H:%M:%S', time.gmtime(result[3]))
+                })
+
             id += 1
+            total += result[3]
+
+        response["total"] = time.strftime('%H:%M:%S', time.gmtime(total))
 
         response["history"] = sorted(response["history"],
                                      key=lambda x: x["started_at"])
@@ -825,6 +848,7 @@ class DatabaseHandler:
                                     {...},
                                     ...
                                 ],
+                                "total":   <total_hrs_worked>                   (only if successful
                                 "message": <ERROR_message>                      (only if not successful)
 
                             }
@@ -849,18 +873,20 @@ class DatabaseHandler:
             "leader_board": list()
         }
 
-        id = 0
+        id = 1
+        total = 0
 
         for user in users:
-            result["leader_board"].append(
-                {
+            result["leader_board"].append( {
                     "id": id,
                     "name": user[0],
                     "user_id": self._get_sha256_encryption(user[2]),
-                    "seconds": user[3]
-                }
-            )
+                    "seconds": time.strftime('%H:%M:%S', time.gmtime(user[3]))
+            })
             id += 1
+            total += user[3]
+
+        result["total"] = time.strftime('%H:%M:%S', time.gmtime(total))
 
         return result
 
@@ -893,7 +919,7 @@ class DatabaseHandler:
         """
 
         query = "SELECT c.name, c.url, c.syllabus, c.about, c.notes, " \
-                    "c.weekly_commitment_low, c.weekly_commitment_low, c.weekly_commitment_high, cc.category_name " \
+                    "c.weekly_commitment_low, c.weekly_commitment_high, c.number_weeks, cc.category_name " \
                 "FROM courses AS c " \
                 "INNER JOIN course_categories AS cc ON c.cid = cc.id;"
 
@@ -910,21 +936,21 @@ class DatabaseHandler:
             "courses": list()
         }
 
-        id = 0
+        id = 1
 
         for course in courses:
             result["courses"].append(
                 {
                     "id": id,
-                    "name": result[0],
-                    "url": result[1],
-                    "syllabus": result[2],
-                    "about": result[3],
-                    "notes": result[4],
-                    "commitment_low": result[5],
-                    "commitment_high": result[6],
-                    "weeks": result[7],
-                    "category": result[8]
+                    "name": course[0],
+                    "url": course[1],
+                    "syllabus": course[2],
+                    "about": course[3],
+                    "notes": course[4],
+                    "commitment_low": course[5],
+                    "commitment_high": course[6],
+                    "weeks": course[7],
+                    "category": course[8]
                 }
             )
             id += 1

@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, Response
+from flask import Flask, request, jsonify, Response, render_template
 from database.database_handler import DatabaseHandler as DH
 from flask_cors import CORS, cross_origin
 
@@ -345,29 +345,15 @@ def user_history():
                 "asking": <id_of_the_user_asking_for_the_data>,
                 "user": <id_of_the_user_we_ask_for>
             }
-    :return:
-                        {
-                            "success": <True/False>,
-                            "history": [                                        (only if successful)
-                                {
-                                    "id": <entry_id>,
-                                    "course_name": <Course_name>,
-                                    "cour"se_url": <course_url>,
-                                    "started_at": <started_at>,
-                                    "logged_at": <time_entry_was_logged>,
-                                    "seconds":  <no_of_seconds_spent_working>
-                                },
-                                { ... },
-                                ...
-                            ],
-                            "message": <ERROR_message>                          (only if not successful)
-                        }
+    :return:    A rendered template with the user's history (if the asking user has enough rights)
     """
+
     if request.is_json:
         data = request.json
         if "asking" in data and "user" in data:
             if isinstance(data["asking"], str) and isinstance(data["user"], str):
-                return jsonify(dh.get_history_for_user(data["asking"], data["user"]))
+                data = dh.get_history_for_user(data["asking"], data["user"])
+                return render_template("html/stats/history.html", data=data)
             else:
                 return Response(status=400, response="Wrong format")
         else:
@@ -379,7 +365,8 @@ def user_history():
 @app.route("/stats/leaderboard", methods=["GET", "OPTIONS"])
 @cross_origin()
 def get_leaderboard():
-    return jsonify(dh.get_leaderboard())
+    data = dh.get_leaderboard()
+    return render_template("html/stats/leaderboard.html", data=data)
 
 
 @app.route("/user/is-working", methods=["GET", "OPTIONS"])
@@ -434,6 +421,14 @@ def update_time():
         return Response(status=200, response="All good")
     else:
         return Response(status=400, response=msg)
+
+
+@app.route("/courses", methods=["GET", "OPTIONS"])
+@cross_origin()
+def courses():
+    data = dh.get_courses_list_with_details()
+    return render_template("html/courses.html", data=data["courses"])
+
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)

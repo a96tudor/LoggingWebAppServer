@@ -1,0 +1,69 @@
+{% if data %}
+
+<h1 class="title">
+    Courses
+</h1>
+
+<div class="table-wrapper">
+	<table>
+    <thead>
+      <tr>
+        <th>No.</th>
+        <th>Course name</th>
+        <th>Category</th>
+        <th>Time Required(weeks)</th>
+        <th>About</th>
+        <th>Syllabus</th>
+
+      </tr>
+    </thead>
+    <tbody id="courses-content">
+        {% for item in data %}
+        <tr>
+            <td>{{item['id']}}</td>
+            <td>
+                <a href={{item['url']}}>
+                    {{item['name']}}
+                </a>
+            </td>
+            <td>
+                {% if item["category"] %}
+                    {{item["category"]}}
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+            <td>
+                {% if item["weeks"] %}
+                    {{item["weeks"]}}
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+            <td>
+                {% if item["about"] %}
+                    {{item["about"]}}
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+            <td>
+                {% if item["syllabus"] %}
+                    {{item["syllabus"]}}
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% else %}
+
+<h1 class="error-message">
+    Resource unavailable for the moment.
+</h1>
+
+{% endif %}

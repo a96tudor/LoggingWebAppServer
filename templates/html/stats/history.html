@@ -1,7 +1,8 @@
-<script type="text/javascript">
-  fillInTemplate("history");
-</script>
+<h1 class="title">
+    User History
+</h1>
 
+{% if data %}
 <div class="table-wrapper">
 	<table>
     <thead>
@@ -14,13 +15,62 @@
       </tr>
     </thead>
     <tbody id="history-body">
-
+        {% for item in data["history"] %}
+        <tr>
+            <td>
+                {% if item["id"] %}
+                    {{item["id"]}}
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+            <td>
+                <a href= {{item["course_url"]}}>
+                    {% if item["course_name"] %}
+                        {{item["course_name"]}}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </a>
+            </td>
+            <td>
+                {% if item["started_at"] %}
+                    {{item["started_at"]}}
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+            <td>
+                {% if item["time"] %}
+                    {{item["time"]}}
+                {% else %}
+                    00:00:00
+                {% endif %}
+            </td>
+            <td>
+                Coming soon!
+            </td>
+        </tr>
+        {% endfor %}
     </tbody>
     <tfoot>
       <tr>
         <td colspan="2"> Total worked: </td>
-        <td id = "total"> </td>
+        <td id = "total">
+            {% if data["total"] %}
+                {{data["total"]}}
+            {% else %}
+                <h1 class="error-message">
+                    ERROR!
+                </h1>
+            {% endif %}
+        </td>
       </tr>
     </tfoot>
   </table>
 </div>
+{% else %}
+<h1 class="error-message">
+    Resource unavailable for the moment.
+</h1>
+{% endif %}
