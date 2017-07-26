@@ -757,7 +757,7 @@ class DatabaseHandler:
                     "id": id,
                     "course_name": result[0],
                     "course_url": result[1],
-                    "started_at": result[2].isoformat(' '),
+                    "started_at": result[2],
                     "logged_at": result[4],
                     "time": time.strftime('%H:%M:%S', time.gmtime(user[3]))
                 })
