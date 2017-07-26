@@ -396,7 +396,7 @@ class DatabaseHandler:
                     return get_new_token(self._DEFAULT_TTL)
                 else:
                     valid = self.is_token_still_valid(logged_in[0][0])
-                    if valid["sucess"] and valid["valid"]:
+                    if valid["success"] and valid["valid"]:
                             return {
                                 "success": True,
                                 "id": self._get_sha256_encryption(user[[1]]),
@@ -760,8 +760,8 @@ class DatabaseHandler:
                     "started_at": result[2].isoformat(' '),
                     "logged_at": result[4],
                     "time": time.strftime('%H:%M:%S', time.gmtime(user[3]))
-                }
-            )
+                })
+
             id += 1
             total += result[3]
 
