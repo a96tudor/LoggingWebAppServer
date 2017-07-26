@@ -14,7 +14,7 @@
       </tr>
     </thead>
     <tbody id="leaderboard-body">
-        {% for item in data %}
+        {% for item in data["leader_board"] %}
             <tr>
                 <td>
                     {% if item["id"] %}
@@ -46,7 +46,7 @@
       <tr class="total-leaderboard">
         <td colspan="2"> Total worked: </td>
         <td id = "total">
-
+            {{data["total"]}}
         </td>
       </tr>
     </tfoot>
