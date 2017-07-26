@@ -729,6 +729,9 @@ class DatabaseHandler:
         id = 0
 
         for result in results:
+            if result[2] is None or result[4] is None:
+                continue
+
             response["history"].append(
                 {
                     "id": id,
@@ -742,7 +745,7 @@ class DatabaseHandler:
             id += 1
 
         response["history"] = sorted(response["history"],
-                                     key=lambda x: dt.utcfromtimestamp(0) if x["started_at"] is None else x["started_at"])
+                                     key=lambda x: x["started_at"])
         return response
 
     def get_stats_for_user(self, email_for_request, email_for_user):
