@@ -952,7 +952,7 @@ class DatabaseHandler:
                     "commitment_high": course[6],
                     "weeks": course[7],
                     "category": course[8],
-                    "function": "start_work('" + course[0] + "');"
+                    "function": "start_work('" + course[0] + "'," + course[1] + ");"
                 }
             )
             id += 1
