@@ -761,7 +761,8 @@ class DatabaseHandler:
                     "course_url": result[1],
                     "started_at": result[2][:-7],
                     "logged_at": result[4][:-7],
-                    "time": time.strftime('%H:%M:%S', time.gmtime(result[3]))
+                    "time": time.strftime('%H:%M:%S', time.gmtime(result[3])),
+                    "function": "start_work('" + result[0] + "');"
                 })
 
             id += 1
