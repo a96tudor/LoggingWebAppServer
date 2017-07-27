@@ -14,7 +14,7 @@
         <th>Time Required(weeks)</th>
         <th>About</th>
         <th>Syllabus</th>
-
+        <th> </th>
       </tr>
     </thead>
     <tbody id="courses-content">
@@ -54,7 +54,11 @@
                     N/A
                 {% endif %}
             </td>
-        </tr>
+            <td>
+                <input type="button" value="Start work!" id="submit" onclick="console.log('working')"/>
+            </td>
+
+            </tr>
         {% endfor %}
     </tbody>
   </table>
