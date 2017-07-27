@@ -754,15 +754,13 @@ class DatabaseHandler:
             if result[2] is None or result[4] is None:
                 continue
 
-            response["history"].append(
-                {
+            response["history"].append({
                     "id": id,
                     "course_name": result[0],
                     "course_url": result[1],
                     "started_at": result[2][:-7],
                     "logged_at": result[4][:-7],
                     "time": time.strftime('%H:%M:%S', time.gmtime(result[3])),
-                    "function": "start_work('" + result[0] + "');"
                 })
 
             id += 1
@@ -953,7 +951,8 @@ class DatabaseHandler:
                     "commitment_low": course[5],
                     "commitment_high": course[6],
                     "weeks": course[7],
-                    "category": course[8]
+                    "category": course[8],
+                    "function": "start_work('" + course[0] + "');"
                 }
             )
             id += 1
