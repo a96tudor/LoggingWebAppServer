@@ -745,8 +745,10 @@ class DatabaseHandler:
             "history": list()
         }
 
-        id = 0
+        id = 1
         total = 0
+
+        results = sorted(results, key=lambda x: x[2])
 
         for result in results:
             if result[2] is None or result[4] is None:
@@ -767,8 +769,6 @@ class DatabaseHandler:
 
         response["total"] = time.strftime('%H:%M:%S', time.gmtime(total))
 
-        response["history"] = sorted(response["history"],
-                                     key=lambda x: x["started_at"])
         return response
 
     def get_stats_for_user(self, email_for_request, email_for_user):
