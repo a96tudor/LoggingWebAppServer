@@ -23,9 +23,9 @@ def create_rights_table():
             "rights ( " \
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " \
                 "uid INT NOT NULL, " \
-                "cid INT NOT NULL " \
+                "cid INT NOT NULL, " \
                 "FOREIGN KEY(uid) REFERENCES users(id), " \
-                "FOREIGN KEY(cid) REFERENCES courses(id)" \
+                "FOREIGN KEY(cid) REFERENCES courses(id) s" \
             ");"
     execute_query(query)
 
