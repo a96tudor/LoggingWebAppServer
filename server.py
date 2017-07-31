@@ -474,7 +474,7 @@ def update_user_password(id_user, id_admin=None):
     """
 
     if request.is_json:
-
+        return True
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
