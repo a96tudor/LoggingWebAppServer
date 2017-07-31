@@ -245,7 +245,6 @@ def check_session():
         if "token" in data:
             if isinstance(data["token"], str):
                 result = dh.is_token_still_valid(data["token"])
-                print(data["token"], result)
                 return jsonify(result)
             else:
                 return Response(400, "Invalid format")
@@ -445,7 +444,6 @@ def account_info():
 
     id_asker = request.args.get("id_asker")
     id_user = request.args.get("id_user")
-    print(id_user, id_asker)
     data = dh.get_user_details(id_asker, id_user)
 
     return render_template("html/user-info.html", data=data)
