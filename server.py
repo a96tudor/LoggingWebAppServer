@@ -430,9 +430,9 @@ def courses():
     return render_template("html/courses.html", data=data["courses"])
 
 
-@app.route("/user/info/<string:id_asker>/<string:id_user>", methods=["GET", "OPTIONS"])
+@app.route("/user/info", methods=["GET", "OPTIONS"])
 @cross_origin()
-def account_info(id_asker, id_user):
+def account_info():
     """
         Function that returns the user information for a specific user
 
@@ -443,6 +443,9 @@ def account_info(id_asker, id_user):
     :return:    A rendered HTML template with all the required information and functionalities
     """
 
+    id_asker = request.args.get("id_asker")
+    id_user = request.args.get("id_user")
+    print(id_user, id_asker)
     data = dh.get_user_details(id_asker, id_user)
 
     return render_template("html/user-info.html", data=data)
