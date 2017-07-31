@@ -430,5 +430,51 @@ def courses():
     return render_template("html/courses.html", data=data["courses"])
 
 
+@app.route("/user/info/<string:id_asker>/<string:id_user>", methods=["GET", "OPTIONS"])
+@cross_origin()
+def account_info(id_asker, id_user):
+    """
+        Function that returns the user information for a specific user
+
+    :param id_user:     The id of the user we want to get information about
+    :param id_asker:    The id of the user asking for information
+                        (Has to be either an admin, or the same as id_user)
+
+    :return:    A rendered HTML template with all the required information and functionalities
+    """
+
+    data = dh.get_user_details(id_asker, id_user)
+
+    return render_template("html/user-info.html", data=data)
+
+
+@app.route("/user/update/password/<string:id_user>/<string:id_admin>", methods=["POST", "OPTIONS"])
+@cross_origin()
+def update_user_password(id_user, id_admin=None):
+    """
+
+        Method that updates a user's password
+
+        :param id_user:     The ID of the user we update the password for
+        :param id_admin:    The ID of the admin updating the user (default None)
+
+        It also expects a JSON in the request, with the following format:
+
+                {
+                    "old_pass":     <the old password of the user>  (only if id_admin is None)
+                    "new_pass":     <the new password of the user>
+                }
+
+    :return:    A JSON with the following format:
+
+                {
+                    "success":      <True/ False>,
+                    "message":      <ERROR_message>     (only if not successful)
+                }
+    """
+
+    if request.is_json:
+
+
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
