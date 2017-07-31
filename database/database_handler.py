@@ -399,7 +399,7 @@ class DatabaseHandler:
                     if valid["success"] and valid["valid"]:
                             return {
                                 "success": True,
-                                "id": self._get_sha256_encryption(user[[1]]),
+                                "id": self._get_sha256_encryption(user[1]),
                                 "name": user[2],
                                 "token": logged_in[0][0],
                                 "ttl": self._DEFAULT_TTL
@@ -1055,5 +1055,146 @@ class DatabaseHandler:
         except:
             return False, "User not working"
 
+    def get_user_details(self, id_asker, id_user):
+        """
 
+        :param id_asker:        The id of the user asking for the details
+        :param id_user:         The id of the user we want the information for
+        :return:                A dictionary of the format:
+                        {
+                            "success": <True/False>,
+                            "admin":   <True/False>,        (only if successful)   --- if the asker is admin
+                            "name":    <user's name>,       (only if successful)
+                            "is_admin": <True/False>,       (only if successful and admin)
+                            "access":   <courses categories that the user has access to>    (only if successful and admin)
+                            "message":  <ERROR_message>     (only if not successful)
+                        }
+        """
+        if not (self.is_admin(id_asker) or id_asker == id_user):
+            return {
+                "success": False, "message": "Not enough rights to do this!"
+            }
+
+        user = self._get_user_from_hash(id_user)
+
+        if user is None:
+            return {
+                "success": False, "message": "Invalid user id!"
+            }
+
+        if self.is_admin(id_asker):
+            uid = user[0]
+            #TODO: FINALIZE IMPLEMENTATION HERE!!!!
+
+        return {
+            "success": True,
+            "admin": False,
+            "name": user[2]
+        }
+
+    def update_user_name(self, id_updater, id_user, new_name):
+        """
+
+        :param id_updater:          The id of the person who's updating the name.
+                                It has to be either an admin, or the same as the id_user
+        :param id_user:             The id of the user we update the name for
+        :param new_name:            the new name for the user
+        :return:                 A dictionary of the format:
+                        {
+                            "success": <True/False>,
+                            "message": <ERROR_message> (only if not successful)
+                        }
+        """
+        if not (self.is_admin(id_updater) or id_updater == id_user):
+            return {
+                "success": False, "message": "Not enough rights to do it"
+            }
+
+        user = self._get_user_from_hash(id_user)
+
+        if user is None:
+            return {
+                "success": False, "message": "Invalid user id"
+            }
+
+        uid = user[0]
+
+        try:
+            self._execute_UPDATE("users", ["full_name"], [new_name], "id=?", [uid])
+        except:
+            return {
+                "success": False, "message": "Database failure"
+            }
+
+        return {"success": True}
+
+    def update_user_password(self, id_user, old_password, new_password):
+
+        """
+            Method that updates a user's password. Only works with the same user doing it
+
+        :param id_user:                 the id of the user we update the password for
+        :param old_password:            the old password (for validation)
+        :param new_password:            the new password
+        :return:                        A dictionary with the following format:
+                            {
+                                "success":  <True/ False>,
+                                "message": <ERROR_message>  (only if not successful)
+                            }
+        """
+        user = self._get_user_from_hash(id_user)
+        if user is None:
+            return {
+                "success": False, "message": "Incorrect user ID"
+            }
+
+        if self._check_pass(old_password, user[3]):
+            try:
+                self._execute_UPDATE("users", ["password"], [self._encrypt_pass(new_password)], "id=?", [user[0]])
+            except:
+                return {
+                    "success": False,
+                    "message": "Database failure"
+                }
+
+            return {"success": True}
+
+        return {"success": False, "message": "Invalid password"}
+
+    def update_user_password_as_admin(self, id_admin, id_user, new_password):
+        """
+                Method that allows an admin to update a user's password
+
+        :param id_admin:            The id of the admin doing the update
+        :param id_user:             The id of the user doing the update for
+        :param new_password:        The new password
+        :return:                    A dictionary with the following format:
+                        {
+                            "success": <True/ False>
+                            "message": <ERROR_message>      (only if not successful)
+                        }
+        """
+        if not (self.is_admin(id_admin)):
+            return {
+                "success": False,
+                "message": "Not enough rights to do this"
+            }
+
+        user = self._get_user_from_hash(id_user)
+
+        if user is None:
+            return {
+                "success": False,
+                "message": "Invalid user id"
+            }
+
+        try:
+            self._execute_UPDATE("users", ["password"], [self._encrypt_pass(new_password)], "id=?", [user[0]])
+        except:
+            return {
+                "success": False,
+                "message": "Database failure"
+            }
+
+        return {"success": True}
 

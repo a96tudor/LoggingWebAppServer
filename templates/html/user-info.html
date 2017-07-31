@@ -1,0 +1,72 @@
+{% if data %}
+    {% if data["success"] %}
+
+        <h1 class="title"> Account Information </h1>
+
+        <h1 class="sub-title"> General Information  </h1>
+        <hr>
+
+        {% if data["name"] %}
+            <div class="edit-container">
+                <div class="inline">
+                    <p class="info">Name: </p>
+                </div>
+
+                <div class="inline">
+
+                    <p id="nameP" class="name info"> {{data["name"]}} </p>
+                    <input id="text-name-edit" class="edit-input" type="text" value={{data["name"]}}>
+
+                </div>
+
+                <div class="inline">
+                    <i id="edit-icon-name" class="material-icons" onclick="toggleDisplayHide(['text-name-edit', 'button-name-edit'],
+                                      ['nameP', 'edit-icon-name'])">mode_edit</i>
+                    <input id="button-name-edit" class="edit-input" type="button" value="Done!"
+                        onclick="toggleDisplayHide(['nameP', 'edit-icon-name'], ['text-name-edit', 'button-name-edit'])">
+                </div>
+            </div>
+        {% else %}
+            <h1 class="error-message">
+                Resource unavailable for the moment. Please contact an administrator
+            </h1>
+        {% endif %}
+
+        <h1 class="sub-title"> Security </h1>
+        <hr>
+
+        <div class="edit-container">
+            <input id="button-reset-pass" class="button-reset" type="button" value="Reset your password"
+                   onclick="toggleDisplayHide(['password-reset-container', 'pass-confirm'], ['button-reset-pass'])">
+
+            <div id="password-reset-container">
+                <span></span>
+                <input class="pass-input" type="password" id="old_pass" placeholder="Enter your old password here...">
+
+                <span></span>
+                <input class="pass-input" type="password" id="new_pass" placeholder="Enter your password here...">
+
+                <span></span>
+                <input class="pass-input" type="password" id="new_pass_confirm" placeholder="Confirm password...">
+
+                <span></span>
+                <input id="pass-confirm" class="edit-input" type="button" value="Submit"
+                       onclick="toggleDisplayHide(['button-reset-pass'], ['password-reset-container'])">
+
+            </div>
+        </div>
+    {% else %}
+        <h1 class="error-message">
+            Resource unavailable for the moment.
+        </h1>
+        <p class="hidden"> {{data["message"]}} </p>
+    {% endif %}
+
+{% else %}
+
+    <h1 class="error-message">
+        Resource unavailable for the moment.
+    </h1>
+    <p class="hidden"> data was NULL </p>
+
+{% endif %}
