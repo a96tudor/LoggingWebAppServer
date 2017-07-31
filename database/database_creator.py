@@ -25,7 +25,7 @@ def create_rights_table():
                 "uid INT NOT NULL, " \
                 "cid INT NOT NULL, " \
                 "FOREIGN KEY(uid) REFERENCES users(id), " \
-                "FOREIGN KEY(cid) REFERENCES courses(id) s" \
+                "FOREIGN KEY(cid) REFERENCES courses(id) " \
             ");"
     execute_query(query)
 
