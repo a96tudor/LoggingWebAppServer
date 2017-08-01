@@ -6,6 +6,12 @@ dh = DH("database/SMU-logs.db")
 app = Flask(__name__)
 CORS(app)
 
+def dictionary_has_cols(cols, dictionary):
+    for col in cols:
+        if not (col in dictionary):
+            return False
+    return True
+
 
 @app.route("/user-validate", methods=["POST", "OPTIONS"])
 @cross_origin()
@@ -477,7 +483,7 @@ def update_user_password():
 
     if request.is_json:
         data = request.json
-        if ("id_user", "id_admin", "new_pass").issubset(data):
+        if dictionary_has_cols(("id_user", "id_admin", "new_pass"), data):
             return jsonify(dh.update_user_password_as_admin(data["id_admin"], data["id_user"], data["new_pass"]))
         elif ("id_user", "old_pass", "new_pass").issubset(data):
             return jsonify(dh.update_user_password(data["id_user"], data["old_pass"], data["new_pass"]))
@@ -510,7 +516,7 @@ def update_user_name():
     """
     if request.is_json:
         data = request.json
-        if ("id_updater", "id_user", "new_name").issubset(data):
+        if dictionary_has_cols(("id_updater", "id_user", "new_name"), data):
             return jsonify(dh.update_user_name(data["id_updater"], data["id_user"], data["new_name"]))
         else:
             return Response(status="500", response="invalid JSON format")
