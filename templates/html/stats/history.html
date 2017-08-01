@@ -1,8 +1,55 @@
+{% if data %}
+
+{% if data["working"]["success"] and data["working"]["working"] %}
+
+<h1 class="subtitle">
+    WARNING: You still have an ongoing course:
+</h1>
+<div class="table_wrapper">
+    <table>
+        <thead>
+            <th> Course name </th>
+            <th> Started working </th>
+            <th> Action </th>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    {% if data["working"]["course"] %}
+                        {{data["working"]["course"]}}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td>
+                    {% if data["working"]["since"] %}
+                        {{data["working"]["since"]}}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td>
+                    <button class="stop-now"
+                            id = "stop-button">
+                        Stop working now!
+                    </button>
+
+                    <button class="continue-working"
+                            id="continue-button">
+                        Continue working!
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
 <h1 class="title">
     User History
 </h1>
 
-{% if data %}
+
 <div class="table-wrapper">
 	<table>
     <thead>

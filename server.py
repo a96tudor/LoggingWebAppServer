@@ -352,6 +352,7 @@ def user_history():
         if "asking" in data and "user" in data:
             if isinstance(data["asking"], str) and isinstance(data["user"], str):
                 data = dh.get_history_for_user(data["asking"], data["user"])
+                data["working"] = dh.get_history_for_user(data["asking"], data["user"])
                 return render_template("html/stats/history.html", data=data)
             else:
                 return Response(status=400, response="Wrong format")
@@ -449,20 +450,19 @@ def account_info():
     return render_template("html/user-info.html", data=data)
 
 
-@app.route("/user/update/password/<string:id_user>/<string:id_admin>", methods=["POST", "OPTIONS"])
+@app.route("/user/update/password", methods=["POST", "OPTIONS"])
 @cross_origin()
-def update_user_password(id_user, id_admin=None):
+def update_user_password():
     """
 
-        Method that updates a user's password
-
-        :param id_user:     The ID of the user we update the password for
-        :param id_admin:    The ID of the admin updating the user (default None)
+        Function that updates a user's password
 
         It also expects a JSON in the request, with the following format:
 
                 {
-                    "old_pass":     <the old password of the user>  (only if id_admin is None)
+                    "id_user":      <the id of the user we update the password for>
+                    "id_admin":     <the id of the admin doing the update>                  (only if done by an admin)
+                    "old_pass":     <the old password of the user>                          (only if done by the user)
                     "new_pass":     <the new password of the user>
                 }
 
@@ -475,7 +475,46 @@ def update_user_password(id_user, id_admin=None):
     """
 
     if request.is_json:
-        return True
+        data = request.json
+        if ("id_user", "id_admin", "new_pass").issubset(data):
+            return jsonify(dh.update_user_password_as_admin(data["id_admin"], data["id_user"], data["new_pass"]))
+        elif ("id_user", "old_pass", "new_pass").issubset(data):
+            return jsonify(dh.update_user_password(data["id_user"], data["old_pass"], data["new_pass"]))
+        else:
+            return Response(status="500", response="invalid JSON format")
+    else:
+        return Response(status="500", response="Request not a JSON")
+
+
+@app.route("/user/update/name", methods=["POST", "OPTIONS"])
+@cross_origin()
+def update_user_name():
+    """
+        Function that handles a request to update a user's name
+
+        It expects a JSON with the following format:
+
+            {
+                "id_updater": <id of the user doing the update>
+                                (has to be either the same as id_user or an admin)
+                "id_user":    <id of the user we update the name for>
+                "new_name":   <the new name of the user>
+            }
+    :return:
+
+            {
+                "success":   <True/ False>
+                "message":   <ERROR_message>    (only if not successful)
+            }
+    """
+    if request.is_json:
+        data = request.json
+        if ("id_updater", "id_user", "new_name").issubset(data):
+            return jsonify(dh.update_user_name(data["id_updater"], data["id_user"], data["new_name"]))
+        else:
+            return Response(status="500", response="invalid JSON format")
+    else:
+        return Response(status="500", response="Request not a JSON")
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)

@@ -294,7 +294,7 @@ class DatabaseHandler:
 
         return True, ""
 
-    def add_user(self, email, name, password, admin):
+    def signup(self, email, name, password, admin):
         """
                 Function that inserts a new user into the database
 
@@ -496,13 +496,14 @@ class DatabaseHandler:
                                 "name": <full_name>,
                                 "email": <hashed_email>,
                                 "since": <working_since>,
+                                "worked for":   <last logged time for that user>
                                 "course": <course_name>
-                            },s
+                            },
                             ...
                         ]
                     }
         """
-        query = "SELECT u.full_name, u.email, c.name, w.since FROM " \
+        query = "SELECT u.full_name, u.email, c.name, w.since, w.time FROM " \
                 "working AS w " \
                 "INNER JOIN users AS u ON w.uid=u.id " \
                 "INNER JOIN courses AS c ON w.cid=c.id ";
@@ -526,6 +527,7 @@ class DatabaseHandler:
             new_entry["email"] = self._get_sha256_encryption(result[1])
             new_entry["course"] = result[2]
             new_entry["since"] = result[3]
+            new_entry["worked for"] = result[4]
             id += 1
             working_users["users"].append(new_entry)
 
@@ -978,7 +980,7 @@ class DatabaseHandler:
             return {"success": False, "message": "You don't have enough rights for this."}
 
         try:
-            self._execute_INSERT("users", ["email", "full_name", "admin"], (email, full_name, admin))
+            self._execute_INSERT("users", ["email", "full_name", "admin"], email, full_name, admin)
         except:
             return {"success": False, "message": "Server error"}
 
@@ -998,6 +1000,7 @@ class DatabaseHandler:
                             "working": <True/ False>,       (only if successful)
                             "course": <course_name>,        (only if successful and working)
                             "time": <no_of_seconds_working> (only if successful and working)
+                            "since": <start date>           (only if successful and working)
                             "message": <ERROR_message>      (only if not successful)
                         }
         """
@@ -1010,7 +1013,7 @@ class DatabaseHandler:
             return {"success": False, "message": "Invalid user id"}
 
         try:
-            query = "SELECT c.course_name, w.time " \
+            query = "SELECT c.course_name, w.time, w.since " \
                     "FROM working AS w " \
                     "INNER JOIN courses AS c " \
                         "ON w.cid = c.id " \
@@ -1027,7 +1030,8 @@ class DatabaseHandler:
             "success": True,
             "working": True,
             "course": result[0][0],
-            "time": result[0][1]
+            "time": result[0][1],
+            "since": result[0][2]
         }
 
     def update_time(self, id_user, time):
