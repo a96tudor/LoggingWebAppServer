@@ -245,7 +245,6 @@ def check_session():
         if "token" in data:
             if isinstance(data["token"], str):
                 result = dh.is_token_still_valid(data["token"])
-                print(data["token"], result)
                 return jsonify(result)
             else:
                 return Response(400, "Invalid format")
@@ -352,8 +351,10 @@ def user_history():
         data = request.json
         if "asking" in data and "user" in data:
             if isinstance(data["asking"], str) and isinstance(data["user"], str):
-                data = dh.get_history_for_user(data["asking"], data["user"])
-                return render_template("html/stats/history.html", data=data)
+                resp = dh.get_history_for_user(data["asking"], data["user"])
+                resp["working"] = dh.user_is_working(data["user"])
+                print(resp["working"])
+                return render_template("html/stats/history.html", data=resp)
             else:
                 return Response(status=400, response="Wrong format")
         else:
@@ -429,6 +430,92 @@ def courses():
     data = dh.get_courses_list_with_details()
     return render_template("html/courses.html", data=data["courses"])
 
+
+@app.route("/user/info", methods=["GET", "OPTIONS"])
+@cross_origin()
+def account_info():
+    """
+        Function that returns the user information for a specific user
+
+    :param id_user:     The id of the user we want to get information about
+    :param id_asker:    The id of the user asking for information
+                        (Has to be either an admin, or the same as id_user)
+
+    :return:    A rendered HTML template with all the required information and functionalities
+    """
+
+    id_asker = request.args.get("id_asker")
+    id_user = request.args.get("id_user")
+    data = dh.get_user_details(id_asker, id_user)
+
+    return render_template("html/user-info.html", data=data)
+
+
+@app.route("/user/update/password", methods=["POST", "OPTIONS"])
+@cross_origin()
+def update_user_password():
+    """
+
+        Function that updates a user's password
+
+        It also expects a JSON in the request, with the following format:
+
+                {
+                    "id_user":      <the id of the user we update the password for>
+                    "id_admin":     <the id of the admin doing the update>                  (only if done by an admin)
+                    "old_pass":     <the old password of the user>                          (only if done by the user)
+                    "new_pass":     <the new password of the user>
+                }
+
+    :return:    A JSON with the following format:
+
+                {
+                    "success":      <True/ False>,
+                    "message":      <ERROR_message>     (only if not successful)
+                }
+    """
+
+    if request.is_json:
+        data = request.json
+        if ("id_user", "id_admin", "new_pass").issubset(data):
+            return jsonify(dh.update_user_password_as_admin(data["id_admin"], data["id_user"], data["new_pass"]))
+        elif ("id_user", "old_pass", "new_pass").issubset(data):
+            return jsonify(dh.update_user_password(data["id_user"], data["old_pass"], data["new_pass"]))
+        else:
+            return Response(status="500", response="invalid JSON format")
+    else:
+        return Response(status="500", response="Request not a JSON")
+
+
+@app.route("/user/update/name", methods=["POST", "OPTIONS"])
+@cross_origin()
+def update_user_name():
+    """
+        Function that handles a request to update a user's name
+
+        It expects a JSON with the following format:
+
+            {
+                "id_updater": <id of the user doing the update>
+                                (has to be either the same as id_user or an admin)
+                "id_user":    <id of the user we update the name for>
+                "new_name":   <the new name of the user>
+            }
+    :return:
+
+            {
+                "success":   <True/ False>
+                "message":   <ERROR_message>    (only if not successful)
+            }
+    """
+    if request.is_json:
+        data = request.json
+        if ("id_updater", "id_user", "new_name").issubset(data):
+            return jsonify(dh.update_user_name(data["id_updater"], data["id_user"], data["new_name"]))
+        else:
+            return Response(status="500", response="invalid JSON format")
+    else:
+        return Response(status="500", response="Request not a JSON")
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)

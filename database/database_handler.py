@@ -294,7 +294,7 @@ class DatabaseHandler:
 
         return True, ""
 
-    def add_user(self, email, name, password, admin):
+    def signup(self, email, name, password, admin):
         """
                 Function that inserts a new user into the database
 
@@ -399,7 +399,7 @@ class DatabaseHandler:
                     if valid["success"] and valid["valid"]:
                             return {
                                 "success": True,
-                                "id": self._get_sha256_encryption(user[[1]]),
+                                "id": self._get_sha256_encryption(user[1]),
                                 "name": user[2],
                                 "token": logged_in[0][0],
                                 "ttl": self._DEFAULT_TTL
@@ -496,13 +496,14 @@ class DatabaseHandler:
                                 "name": <full_name>,
                                 "email": <hashed_email>,
                                 "since": <working_since>,
+                                "worked for":   <last logged time for that user>
                                 "course": <course_name>
-                            },s
+                            },
                             ...
                         ]
                     }
         """
-        query = "SELECT u.full_name, u.email, c.name, w.since FROM " \
+        query = "SELECT u.full_name, u.email, c.name, w.since, w.time FROM " \
                 "working AS w " \
                 "INNER JOIN users AS u ON w.uid=u.id " \
                 "INNER JOIN courses AS c ON w.cid=c.id ";
@@ -526,6 +527,7 @@ class DatabaseHandler:
             new_entry["email"] = self._get_sha256_encryption(result[1])
             new_entry["course"] = result[2]
             new_entry["since"] = result[3]
+            new_entry["worked for"] = result[4]
             id += 1
             working_users["users"].append(new_entry)
 
@@ -745,21 +747,22 @@ class DatabaseHandler:
             "history": list()
         }
 
-        id = 0
+        id = 1
         total = 0
+
+        results = sorted(results, key=lambda x: x[2] if x[2] else "")
 
         for result in results:
             if result[2] is None or result[4] is None:
                 continue
 
-            response["history"].append(
-                {
+            response["history"].append({
                     "id": id,
                     "course_name": result[0],
                     "course_url": result[1],
                     "started_at": result[2][:-7],
                     "logged_at": result[4][:-7],
-                    "time": time.strftime('%H:%M:%S', time.gmtime(result[3]))
+                    "time": time.strftime('%H:%M:%S', time.gmtime(result[3])),
                 })
 
             id += 1
@@ -950,7 +953,8 @@ class DatabaseHandler:
                     "commitment_low": course[5],
                     "commitment_high": course[6],
                     "weeks": course[7],
-                    "category": course[8]
+                    "category": course[8],
+                    "function": "start_work('" + course[0] + "','" + course[1] + "');"
                 }
             )
             id += 1
@@ -976,7 +980,7 @@ class DatabaseHandler:
             return {"success": False, "message": "You don't have enough rights for this."}
 
         try:
-            self._execute_INSERT("users", ["email", "full_name", "admin"], (email, full_name, admin))
+            self._execute_INSERT("users", ["email", "full_name", "admin"], email, full_name, admin)
         except:
             return {"success": False, "message": "Server error"}
 
@@ -996,6 +1000,7 @@ class DatabaseHandler:
                             "working": <True/ False>,       (only if successful)
                             "course": <course_name>,        (only if successful and working)
                             "time": <no_of_seconds_working> (only if successful and working)
+                            "since": <start date>           (only if successful and working)
                             "message": <ERROR_message>      (only if not successful)
                         }
         """
@@ -1008,7 +1013,7 @@ class DatabaseHandler:
             return {"success": False, "message": "Invalid user id"}
 
         try:
-            query = "SELECT c.course_name, w.time " \
+            query = "SELECT c.course_name, w.time, w.since " \
                     "FROM working AS w " \
                     "INNER JOIN courses AS c " \
                         "ON w.cid = c.id " \
@@ -1025,7 +1030,8 @@ class DatabaseHandler:
             "success": True,
             "working": True,
             "course": result[0][0],
-            "time": result[0][1]
+            "time": result[0][1],
+            "since": result[0][2]
         }
 
     def update_time(self, id_user, time):
@@ -1053,5 +1059,146 @@ class DatabaseHandler:
         except:
             return False, "User not working"
 
+    def get_user_details(self, id_asker, id_user):
+        """
 
+        :param id_asker:        The id of the user asking for the details
+        :param id_user:         The id of the user we want the information for
+        :return:                A dictionary of the format:
+                        {
+                            "success": <True/False>,
+                            "admin":   <True/False>,        (only if successful)   --- if the asker is admin
+                            "name":    <user's name>,       (only if successful)
+                            "is_admin": <True/False>,       (only if successful and admin)
+                            "access":   <courses categories that the user has access to>    (only if successful and admin)
+                            "message":  <ERROR_message>     (only if not successful)
+                        }
+        """
+        if not (self.is_admin(id_asker) or id_asker == id_user):
+            return {
+                "success": False, "message": "Not enough rights to do this!"
+            }
+
+        user = self._get_user_from_hash(id_user)
+
+        if user is None:
+            return {
+                "success": False, "message": "Invalid user id!"
+            }
+
+        if self.is_admin(id_asker):
+            uid = user[0]
+            #TODO: FINALIZE IMPLEMENTATION HERE!!!!
+
+        return {
+            "success": True,
+            "admin": False,
+            "name": user[2]
+        }
+
+    def update_user_name(self, id_updater, id_user, new_name):
+        """
+
+        :param id_updater:          The id of the person who's updating the name.
+                                It has to be either an admin, or the same as the id_user
+        :param id_user:             The id of the user we update the name for
+        :param new_name:            the new name for the user
+        :return:                 A dictionary of the format:
+                        {
+                            "success": <True/False>,
+                            "message": <ERROR_message> (only if not successful)
+                        }
+        """
+        if not (self.is_admin(id_updater) or id_updater == id_user):
+            return {
+                "success": False, "message": "Not enough rights to do it"
+            }
+
+        user = self._get_user_from_hash(id_user)
+
+        if user is None:
+            return {
+                "success": False, "message": "Invalid user id"
+            }
+
+        uid = user[0]
+
+        try:
+            self._execute_UPDATE("users", ["full_name"], [new_name], "id=?", [uid])
+        except:
+            return {
+                "success": False, "message": "Database failure"
+            }
+
+        return {"success": True}
+
+    def update_user_password(self, id_user, old_password, new_password):
+
+        """
+            Method that updates a user's password. Only works with the same user doing it
+
+        :param id_user:                 the id of the user we update the password for
+        :param old_password:            the old password (for validation)
+        :param new_password:            the new password
+        :return:                        A dictionary with the following format:
+                            {
+                                "success":  <True/ False>,
+                                "message": <ERROR_message>  (only if not successful)
+                            }
+        """
+        user = self._get_user_from_hash(id_user)
+        if user is None:
+            return {
+                "success": False, "message": "Incorrect user ID"
+            }
+
+        if self._check_pass(old_password, user[3]):
+            try:
+                self._execute_UPDATE("users", ["password"], [self._encrypt_pass(new_password)], "id=?", [user[0]])
+            except:
+                return {
+                    "success": False,
+                    "message": "Database failure"
+                }
+
+            return {"success": True}
+
+        return {"success": False, "message": "Invalid password"}
+
+    def update_user_password_as_admin(self, id_admin, id_user, new_password):
+        """
+                Method that allows an admin to update a user's password
+
+        :param id_admin:            The id of the admin doing the update
+        :param id_user:             The id of the user doing the update for
+        :param new_password:        The new password
+        :return:                    A dictionary with the following format:
+                        {
+                            "success": <True/ False>
+                            "message": <ERROR_message>      (only if not successful)
+                        }
+        """
+        if not (self.is_admin(id_admin)):
+            return {
+                "success": False,
+                "message": "Not enough rights to do this"
+            }
+
+        user = self._get_user_from_hash(id_user)
+
+        if user is None:
+            return {
+                "success": False,
+                "message": "Invalid user id"
+            }
+
+        try:
+            self._execute_UPDATE("users", ["password"], [self._encrypt_pass(new_password)], "id=?", [user[0]])
+        except:
+            return {
+                "success": False,
+                "message": "Database failure"
+            }
+
+        return {"success": True}
 

@@ -17,6 +17,19 @@ def execute_query(query, *args):
     con.commit()
     con.close()
 
+
+def create_rights_table():
+    query = "CREATE TABLE IF NOT EXISTS " \
+            "rights ( " \
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " \
+                "uid INT NOT NULL, " \
+                "cid INT NOT NULL, " \
+                "FOREIGN KEY(uid) REFERENCES users(id), " \
+                "FOREIGN KEY(cid) REFERENCES courses(id) " \
+            ");"
+    execute_query(query)
+
+
 def create_users_table():
     query = "CREATE TABLE IF NOT EXISTS " \
             "users ( " \
@@ -120,6 +133,8 @@ def create_all(path):
     print("Created courses table!")
     create_log_table()
     print("Created logs table!")
+    create_rights_table()
+    print("Created rights table!")
     print("Done!")
 
 if __name__ == "__main__":
