@@ -194,7 +194,7 @@ class DatabaseHandler:
         """
         con = sql.connect(self._dbName)
         cur = con.cursor()
-        cur.execute(query)
+        cur.execute(query, args)
         results = list(set(cur.fetchall()))
         con.commit()
         con.close()
@@ -1013,7 +1013,7 @@ class DatabaseHandler:
             return {"success": False, "message": "Invalid user id"}
 
         try:
-            query = "SELECT c.course_name, w.time, w.since " \
+            query = "SELECT c.name, w.time, w.since " \
                     "FROM working AS w " \
                     "INNER JOIN courses AS c " \
                         "ON w.cid = c.id " \
