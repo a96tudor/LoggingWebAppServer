@@ -511,7 +511,6 @@ class DatabaseHandler:
         try:
             results = self._execute_SELECT_from_query(query)
         except:
-            print("SERVER ERROR!")
             return None
 
         working_users = {
@@ -563,7 +562,6 @@ class DatabaseHandler:
         try:
             results = self._execute_SELECT_from_query(query)
         except:
-            print("SERVER ERROR!")
             return None
 
         logs = {
@@ -664,7 +662,6 @@ class DatabaseHandler:
                 "message": "Server error when finding user"
             }
 
-        print("USER DETAILS: ", uid)
 
         try:
             self._execute_DELETE("logged_in", "uid=?", uid[0])
