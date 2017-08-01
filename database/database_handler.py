@@ -1007,7 +1007,7 @@ class DatabaseHandler:
         try:
            user = self._get_user_from_hash(id_user)
         except:
-            return {"success": False, "message": "Server error"}
+            return {"success": False, "message": "Server error - Decoding username failure"}
 
         if user is None:
             return {"success": False, "message": "Invalid user id"}
@@ -1021,10 +1021,10 @@ class DatabaseHandler:
 
             result = self._execute_SELECT_from_query(query, user[0])
         except:
-            return {"success": False, "message": "Server error"}
+            return {"success": False, "message": "Server error - Database Failure"}
 
         if len(result) == 0:
-            return {"success": True, "working":False}
+            return {"success": True, "working": False}
 
         return {
             "success": True,
