@@ -351,9 +351,9 @@ def user_history():
         data = request.json
         if "asking" in data and "user" in data:
             if isinstance(data["asking"], str) and isinstance(data["user"], str):
-                data = dh.get_history_for_user(data["asking"], data["user"])
-                data["working"] = dh.get_history_for_user(data["asking"], data["user"])
-                return render_template("html/stats/history.html", data=data)
+                resp = dh.get_history_for_user(data["asking"], data["user"])
+                resp["working"] = dh.get_history_for_user(data["asking"], data["user"])
+                return render_template("html/stats/history.html", data=resp)
             else:
                 return Response(status=400, response="Wrong format")
         else:
