@@ -15,7 +15,7 @@
                 <div class="inline">
 
                     <p id="nameP" class="name info"> {{data["name"]}} </p>
-                    <input id="text-name-edit" class="edit-input" type="text" value="">
+                    <input id="text-name-edit" class="edit-input" type="text" value={{data["name"}}>
 
                 </div>
 
@@ -23,7 +23,7 @@
                     <i id="edit-icon-name" class="material-icons" onclick="toggleDisplayHide(['text-name-edit', 'button-name-edit'],
                                       ['nameP', 'edit-icon-name'])">mode_edit</i>
                     <input id="button-name-edit" class="edit-input" type="button" value="Done!"
-                        onclick="toggleDisplayHide(['nameP', 'edit-icon-name'], ['text-name-edit', 'button-name-edit'])">
+                        onclick="updateName();">
                 </div>
             </div>
         {% else %}
@@ -51,7 +51,7 @@
 
                 <span></span>
                 <input id="pass-confirm" class="edit-input" type="button" value="Submit"
-                       onclick="toggleDisplayHide(['button-reset-pass'], ['password-reset-container'])">
+                       onclick="updatePass();">
 
             </div>
         </div>
