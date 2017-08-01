@@ -353,6 +353,7 @@ def user_history():
             if isinstance(data["asking"], str) and isinstance(data["user"], str):
                 resp = dh.get_history_for_user(data["asking"], data["user"])
                 resp["working"] = dh.get_history_for_user(data["asking"], data["user"])
+                print(resp["working"], resp["success"])
                 return render_template("html/stats/history.html", data=resp)
             else:
                 return Response(status=400, response="Wrong format")
