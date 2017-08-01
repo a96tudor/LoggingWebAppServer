@@ -352,7 +352,7 @@ def user_history():
         if "asking" in data and "user" in data:
             if isinstance(data["asking"], str) and isinstance(data["user"], str):
                 resp = dh.get_history_for_user(data["asking"], data["user"])
-                resp["working"] = dh.user_is_working(data["asking"], data["user"])
+                resp["working"] = dh.user_is_working(data["user"])
                 print(resp["working"])
                 return render_template("html/stats/history.html", data=resp)
             else:
