@@ -485,7 +485,7 @@ def update_user_password():
         data = request.json
         if dictionary_has_cols(("id_user", "id_admin", "new_pass"), data):
             return jsonify(dh.update_user_password_as_admin(data["id_admin"], data["id_user"], data["new_pass"]))
-        elif ("id_user", "old_pass", "new_pass").issubset(data):
+        elif dictionary_has_cols(("id_user", "old_pass", "new_pass"), data):
             return jsonify(dh.update_user_password(data["id_user"], data["old_pass"], data["new_pass"]))
         else:
             return Response(status="500", response="invalid JSON format")
