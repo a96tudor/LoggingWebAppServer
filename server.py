@@ -412,7 +412,7 @@ def update_time():
 
           Request URL has to be of the format:
 
-                https://www.neural-guide.me/working/update-time?id=<user_id>&time<time_in_seconds>
+                https://www.neural-guide.me/working/update-time?id=<user_id>&time=<time_in_seconds>
 
     :return:    A Response based on the result of the update
     """
