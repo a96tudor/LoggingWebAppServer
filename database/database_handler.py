@@ -1031,7 +1031,8 @@ class DatabaseHandler:
             "working": True,
             "course": result[0][0],
             "time": result[0][1],
-            "since": result[0][2]
+            "since": result[0][2],
+            "function": "forcedStopWork(" + str(result[0][2]) + ");"
         }
 
     def update_time(self, id_user, time):
@@ -1203,4 +1204,33 @@ class DatabaseHandler:
             }
 
         return {"success": True}
+
+    def force_stop_work(self, id_asker, id_user):
+        """
+            Method that stops a user working based on the logged time in the database
+
+        :param id_user:         the id of the user we want to stop
+        :return:                - status: <True/ False>
+                                - message: <ERROR_message> if anything goes wrong
+        """
+
+        if not (self.is_admin(id_asker) or id_user == id_asker):
+            return False, "Not enough rights to perform the action"
+
+        user = self._get_user_from_hash(id_user)
+
+        if user is None:
+            return False, "Invalid user id"
+
+        id = user[0]
+
+        try:
+            time = self._execute_SELECT("working", "uid="+str(id), ["time"])
+        except:
+            return False, "Server error"
+
+        if len(time) == 0:
+            return False, "User not working"
+        else:
+            return self.stop_work(id_user, time[0][0])
 

@@ -443,9 +443,9 @@ def account_info():
     """
         Function that returns the user information for a specific user
 
-    :param id_user:     The id of the user we want to get information about
-    :param id_asker:    The id of the user asking for information
-                        (Has to be either an admin, or the same as id_user)
+        Expects an URL with the following format:
+
+        https://www.neural-guide.me/user/info?id_asker=<id of the user asking for the information>&id_user<id of the user we want the information for>
 
     :return:    A rendered HTML template with all the required information and functionalities
     """
@@ -522,6 +522,35 @@ def update_user_name():
             return Response(status="500", response="invalid JSON format")
     else:
         return Response(status="500", response="Request not a JSON")
+
+
+@app.route("/stop-work/forced", methods=["POST", "OPTIONS"])
+@cross_origin()
+def stop_work_forced():
+    """
+        Function that handles a forced stop_work request (i.e. without the user pressing the "Done" button on
+            the working.html page)
+
+        Expects an URL with the following format:
+
+        https://www.neural-guide.me/stop-work/forced?id_asker=<id of the user that wants to perform the action>&
+                                                     id_user=<id of the user that stops working>
+    :return:
+    """
+
+    try:
+        id_asker = request.args.get("id_asker")
+        id_user = request.args.get("id_user")
+    except:
+        return Response(status=400, response="Incorrect parameters")
+
+    sts, msg = dh.force_stop_work(id_asker, id_user)
+
+    if sts:
+        return Response(status=200)
+    else:
+        return Response(status=400, response=msg)
+
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
