@@ -1032,7 +1032,7 @@ class DatabaseHandler:
             "course": result[0][0],
             "time": result[0][1],
             "since": result[0][2],
-            "function": "forcedStopWork(" + str(result[0][2]) + ");"
+            "function": "forcedStopWork(" + str(result[0][1]) + ");"
         }
 
     def update_time(self, id_user, time):
