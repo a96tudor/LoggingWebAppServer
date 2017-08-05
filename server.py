@@ -524,7 +524,7 @@ def update_user_name():
         return Response(status="500", response="Request not a JSON")
 
 
-@app.route("/stop-work/forced", methods=["POST", "OPTIONS"])
+@app.route("/stop-work/forced", methods=["PUT", "OPTIONS"])
 @cross_origin()
 def stop_work_forced():
     """
