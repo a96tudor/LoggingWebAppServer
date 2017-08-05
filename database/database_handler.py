@@ -1059,6 +1059,8 @@ class DatabaseHandler:
         except:
             return False, "User not working"
 
+        return True, ""
+
     def get_user_details(self, id_asker, id_user):
         """
 
