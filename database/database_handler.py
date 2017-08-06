@@ -20,6 +20,23 @@ class DatabaseHandler:
 
         self._dbName = db_path
 
+    def _flatten_list(self, input):
+        """
+
+        :param input:       A list of lists/ tuples
+        :return:            The original list, flatten
+        """
+        if len(input) == 0:
+            return list()
+
+        if isinstance(input, list) or isinstance(input, tuple):
+            result = list()
+            for elm in input:
+                result.append(self._flatten_list(elm))
+            return result
+        else:
+            return list(input)
+
     def _execute_query(self, query, *args):
         """
             Function that executes a given query, except SELECT queries
@@ -94,7 +111,7 @@ class DatabaseHandler:
 
         self._execute_query(query, *args)
 
-    def _execute_SELECT(self, table, conds, cols=["*"], limit=None, order=None, groupBy=None, *args):
+    def _execute_SELECT(self, table, conds, cols=["*"], limit=None, order=None, groupBy=None, args=None):
         """
                     function that executes a SELECT query
         :param cols:        the list of columns we want. default ['*']
@@ -103,27 +120,33 @@ class DatabaseHandler:
         :param limit:       how many results to return. default None
         :param order:       the way to order the results. default None
         :param groupBy:     the way to group the results. default None
+        :param args:        The list of arguments for the query (so that we can use wildcards in the query.
+                                default []
+
         :return:            the list representing the results of the query
         """
 
         cols_string = ",".join(cols)
         query = "SELECT " + cols_string + " FROM " + str(table)
 
-        if conds != None:
+        if not conds is None:
             query += " WHERE " + str(conds)
 
-        if order != None:
+        if order is not None:
             query += " ORDER BY " + str(order)
 
-        if groupBy != None:
+        if groupBy is not None:
             query += " GROUP BY " + str(groupBy)
 
-        if limit != None:
+        if limit is not None:
             query += " LIMIT " + str(limit)
+
+        if args is None:
+            args=[]
 
         con = sql.connect(self._dbName)
         cur = con.cursor()
-        cur.execute(query, args)
+        cur.execute(query, *args)
         results = list(set(cur.fetchall()))
         con.commit()
         con.close()
@@ -417,13 +440,18 @@ class DatabaseHandler:
                 "message": "Incorrect username or password"
             }
 
-    def get_courses_list(self):
+    def get_courses_list(self, user_id):
         """
             Method that returns the list of the courses currently in the database
+
+        :param user_id:     The id of the user asking for the list
+                                (used in order to take into account the rights of the user;
+                                        i.e. courses the user is allowed to access)
 
         :return:    A Python dictionary of the format:
 
                     {
+                        "success": <True/False>,
                         "courses": [
                             {
                                 "id": <course_id>,
@@ -434,19 +462,34 @@ class DatabaseHandler:
                                 ...
                             }
                             ...
-                        ]
+                        ],                                           (only if successful)
+                        "message": <ERROR message>                   (only if not successful)
                     }
         """
 
+        user = self._get_user_from_hash(user_id)
+
+        if user is None:
+            return {"success": False, "message": "Invalid user ID"}
+
+        uid = user[0]
+
+        query = "SELECT c.name, c.url " \
+                "FROM courses AS c " \
+                    "INNER JOIN rights AS r " \
+                "ON c.cid = r.cid " \
+                "WHERE r.uid=?;"
+
         try:
-            query_results = self._execute_SELECT("courses", None, ["name", "url"])
+            query_results = self._execute_SELECT_from_query(query, uid)
         except:
-            return False, "Server Error!"
+            return {"success": False, "message": "Database failure"}
 
 
-        id = 0
+        id = 1
         results = {
-            "courses": []
+            "success": True,
+            "courses": list()
         }
 
         for result in query_results:
@@ -458,7 +501,7 @@ class DatabaseHandler:
             id += 1
             results["courses"].append(partial_result)
 
-        return True, results
+        return results
 
     def validate_user(self, email_hash, password):
         """
@@ -961,13 +1004,14 @@ class DatabaseHandler:
 
         return result
 
-    def add_user(self, id_adder, email, full_name, admin):
+    def add_user(self, id_adder, email, full_name, admin, rights):
         """
 
         :param id_adder:            The id of the person adding the user (Has to be an admin)
         :param email:               The email of the person that is added
         :param full_name:           The full name of the person that is added
         :param admin:               Whether the person that is added is an admin/ not (1/0)
+        :param rights:              The list of rights for the user
 
         :return:                    A dictionary of the format:
                                 {
@@ -984,10 +1028,20 @@ class DatabaseHandler:
         except:
             return {"success": False, "message": "Server error"}
 
-        return {
-            "success": True,
-            "user_id": self._get_sha256_encryption(email)
-        }
+        user_id = self._get_sha256_encryption(email)
+
+        sts, msg = self.set_user_rights(user_id, rights, True)
+
+        if sts:
+            return {
+                "success": True,
+                "user_id": user_id
+            }
+        else:
+            return {
+                "success": False,
+                "message": msg
+            }
 
     def user_is_working(self, id_user):
         """
@@ -1001,7 +1055,11 @@ class DatabaseHandler:
                             "course": <course_name>,        (only if successful and working)
                             "time": <no_of_seconds_working> (only if successful and working)
                             "since": <start date>           (only if successful and working)
-                            "message": <ERROR_message>      (only if not successful)
+                            "message": <ERROR_message>      (only if not successful),
+                            "function_forced_stop": <the function called on client to force work stopping>
+                                                                (only if successful and working)
+                            "function_continue":    <the function called on client to continue working>
+                                                                (only if successful and working)
                         }
         """
         try:
@@ -1024,7 +1082,7 @@ class DatabaseHandler:
             return {"success": False, "message": "Server error"}
 
         if len(result) == 0:
-            return {"success": True, "working":False}
+            return {"success": True, "working": False}
 
         return {
             "success": True,
@@ -1032,7 +1090,8 @@ class DatabaseHandler:
             "course": result[0][0],
             "time": result[0][1],
             "since": result[0][2],
-            "function": "forcedStopWork(" + str(result[0][1]) + ");"
+            "function_forced_stop": "forcedStopWork(" + str(result[0][1]) + ");",
+            "function_continue": "continueWork(" + str(result[0][1]) + ");"
         }
 
     def update_time(self, id_user, time):
@@ -1234,3 +1293,111 @@ class DatabaseHandler:
         else:
             return self.stop_work(id_user, time[0][0])
 
+    def set_user_rights(self, user_id, rights, first_time):
+        """
+
+                Method that sets the rights for a user.
+                It follows these steps:
+
+                        (1) DELETES all the old rights of the user
+                        (2) INSERTS the new rights into the database
+
+        :param user_id:         ID of the user doing the update for
+        :param rights:          The list of rights for that specific user
+                                *Note: ["*"] means rights for all course categories*
+        :param first_time:      Whether it is the first time when we set the rights for the user.
+
+        :return:                - status:   <True/ False>
+                                - message:  <ERROR message> (only if status=False)
+        """
+
+        user = self._get_user_from_hash(user_id)
+
+        if user is None:
+            return False, "Incorrect user ID"
+
+        uid = user[0]
+
+        if not first_time:
+            try:
+                self._execute_DELETE("rights", "uid=?", uid)
+            except:
+                return False, "Database failure"
+
+        if rights == ["*"]:
+            # Adding rights for all course categories
+            try:
+                categories = self._flatten_list(
+                    self._execute_SELECT("course_categories", None, ["id"])
+                )
+            except:
+                return False, "Database failure"
+        else:
+            # Adding only the ids of the categories from the list
+            categories = list()
+            for right in rights:
+                try:
+                    id = self._execute_SELECT("course_categories", "name=?", ["id"], args=[right])
+                except:
+                    return False, "Database failure"
+
+                if len(id):
+                    categories.append(id[0][0])
+
+        for cid in categories:
+            try:
+                self._execute_INSERT("rights", ["uid", "cid"], uid, cid)
+            except:
+                return False, "Database failure"
+
+        return True, ""
+
+    def get_user_rights(self, user_id):
+        """
+            Method that gets the rights of a user
+
+        :param user_id:     The id of the user we want the info for
+        :return:            A dictionary with the following format:
+
+                        {
+                            "success":  <True/ False>,
+                            "rights":  [
+                                {
+                                    "category_id": <ID of a category that the user is allowed to access>,
+                                    "category_name": <name of a category the user has access to>
+                                }
+                            ],                                      (only if successful)
+                            "message":  <ERROR_message>             (only if not successful)
+                        }
+        """
+
+        user = self._get_user_from_hash(user_id)
+
+        if user is None:
+            return {"success": False, "message": "Invalid user ID"}
+
+        uid = user[0]
+
+        query = "SELECT c.id, c.name " \
+                "FROM rights AS r " \
+                    "INNER JOIN course_categories AS c " \
+                "ON r.cid=c.cid " \
+                "WHERE r.uid=?"
+
+        try:
+            categories = self._execute_SELECT_from_query(query, uid)
+        except:
+            return {"success": False, "message": "Database failure"}
+
+        result = {
+            "success": True, "rights": list()
+        }
+
+        for category in categories:
+            new_entry = {
+                "category_id": category[0],
+                "category_name": category[1]
+            }
+            result["rights"].append(new_entry)
+
+        return result

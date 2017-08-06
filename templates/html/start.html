@@ -1,0 +1,90 @@
+{% if data %}
+  {% if data["success"] %}
+
+    {% if data["working"]["success"] and data["working"]["working"] %}
+
+    <div id="main-container">
+      <h1 class="sub-title" id="warning-message">
+        WARNING! You still have an ongoing course:
+      </h1>
+
+      <p>
+        Course name:
+        {% if data["working"]["course"] %}
+          {{data["working"]["course"}}
+        {% else %}
+          N/A
+        {% endif %}
+      </p>
+
+      <p>
+        Working since:
+        {% if data["working"]["since"] %}
+          {{data["working"]["since"}}
+        {% else %}
+          N/A
+        {% endif %}
+      </p>
+
+      <button class="stop-now"
+              id = "stop-button"
+              onclick={{data["working"]["function_forced_stop"]}}>
+        Stop working now!
+      </button>
+
+      <button class="continue-working"
+              id="continue-button"
+              onclick={{data["working"]["function_continue"]}}>
+        Continue working!
+      </button>
+
+    </div>
+
+    {% else %}
+
+    <div id="main-container">
+      <form name="start-form" id="start-form" method="POST">
+
+        <label for="id_label_single">
+          Select Course:
+          <br/>
+
+            <script type="text/javascript">
+                $(document).ready(function() {
+                  $(".js-example-basic-single").select2();
+                });
+            </script>
+          
+            <select class="js-example-basic-single js-states form-control select_resize" id="id_label_single">
+              {% for item in data["courses"] %}
+                {% if item["name"] %}
+                  <option>
+                    {{ item["name"] }}
+                  </option>
+                {% endif %}
+              {% endfor %}
+            </select>
+          <br/>
+        </label>
+
+      <input type="button" value="Start work!" id="submit" onclick="start_button_press()"/>
+    </form>
+  </div>
+
+  {% endif %}
+
+  {% else %}
+    <h1 class="error-message">
+      Resource unavailable for the moment.
+    </h1>
+    <p class="hidden"> {{data["message"]}} </p>
+  {% endif %}
+
+{% else %}
+
+    <h1 class="error-message">
+        Resource unavailable for the moment.
+    </h1>
+    <p class="hidden"> data was NULL </p>
+
+{% endif %}

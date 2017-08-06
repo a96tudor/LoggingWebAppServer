@@ -208,22 +208,23 @@ def get_courses():
     in a JSON of the format:
 
         {
+            "success":  <True/ False>
             "courses": [
                 {
                     "id": <id>,
                     "name": <name>
                 }, ...
-            ]
+            ],                                  (only if successful)
+            "message": <ERROR message>          (only if not successful)
         }
     :return:
     """
+    #TODO: fix this provisionary user_id from here!!!!!!!!!!!!!!
+    uid = "ecc6b34288d5c96494cd84efa927ab27023b22d59b6c4b6c412b1c9a5515e720"
 
-    status, courses = dh.get_courses_list()
+    result = dh.get_courses_list(uid)
 
-    if not status:
-        return Response(status=500, response="Server error")
-    else:
-        return jsonify(courses)
+    return jsonify(result)
 
 
 @app.route("/user/valid-session", methods=["POST", "OPTIONS"])

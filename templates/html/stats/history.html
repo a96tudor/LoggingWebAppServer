@@ -2,7 +2,7 @@
 
 {% if data["working"]["success"] and data["working"]["working"] %}
 
-<h1 class="sub-title">
+<h1 class="sub-title" id="warning-message">
     WARNING! You still have an ongoing course:
 </h1>
 <div class="table_wrapper" id="warning-div">
@@ -31,12 +31,13 @@
                 <td>
                     <button class="stop-now"
                             id = "stop-button"
-                            onclick={{data["working"]["function"]}}>
+                            onclick={{data["working"]["function_forced_stop"]}}>
                         Stop working now!
                     </button>
 
                     <button class="continue-working"
-                            id="continue-button">
+                            id="continue-button"
+                            onclick={{data["working"]["function_continue"]}}>
                         Continue working!
                     </button>
                 </td>
