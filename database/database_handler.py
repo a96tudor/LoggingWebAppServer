@@ -26,16 +26,18 @@ class DatabaseHandler:
         :param input:       A list of lists/ tuples
         :return:            The original list, flatten
         """
-        if len(input) == 0:
-            return list()
 
-        if isinstance(input, list) or isinstance(input, tuple):
+        if (isinstance(input, list) or isinstance(input, tuple)):
+            if len(input) == 0:
+                return list()
+
             result = list()
             for elm in input:
-                result.append(self._flatten_list(elm))
+                result += self._flatten_list(elm)
             return result
         else:
-            return list(input)
+            print(input)
+            return [input]
 
     def _execute_query(self, query, *args):
         """
@@ -144,7 +146,7 @@ class DatabaseHandler:
         if args is None:
             args = []
 
-        print(query, args)
+        print(query, conds)
         con = sql.connect(self._dbName)
         cur = con.cursor()
         cur.execute(query, *args)
@@ -1346,9 +1348,13 @@ class DatabaseHandler:
                 if len(id):
                     categories.append(id[0][0])
 
+        print(categories)
         for cid in categories:
+            print(uid, cid)
+            self._execute_INSERT("rights", ["uid", "cid"], uid, cid)
             try:
-                self._execute_INSERT("rights", ["uid", "cid"], uid, cid)
+                #self._execute_INSERT("rights", ["uid", "cid"], uid, cid)
+                print("Test")
             except:
                 print("Error setting rights")
                 return False, "Database failure"
