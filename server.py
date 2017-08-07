@@ -567,7 +567,8 @@ def set_start():
         requests_count += 1
 
 @app.after_request
-def log_time():
+def log_time(exception=None):
+    global start_time
     if request.method !="OPTIONS":
         times.append(time() - start_time)
 
