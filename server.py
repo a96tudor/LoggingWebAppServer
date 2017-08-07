@@ -7,9 +7,7 @@ import atexit
 dh = DH("database/SMU-logs.db")
 app = Flask(__name__)
 CORS(app)
-start_time = None
 times = list()
-requests_count = 0
 
 
 def dictionary_has_cols(cols, dictionary):
@@ -22,6 +20,7 @@ def dictionary_has_cols(cols, dictionary):
 @app.route("/user-validate", methods=["POST", "OPTIONS"])
 @cross_origin()
 def validate_user():
+    start = time()
     with app.app_context():
         if request.is_json:
             data = request.json
@@ -31,6 +30,7 @@ def validate_user():
                     status, msg = dh.validate_user(data["id"], data["pass"])
 
                     if status:
+                        times.append({"path": "/user-validate", "time": time() - start})
                         return Response(status=200, response="Success")
                     elif msg != "Server error":
                         return Response(status=400, response=msg)
@@ -59,12 +59,14 @@ def start_work():
 
     :return:    A Response to the given request
     """
+    start = time()
     if request.is_json:
         data = request.get_json(force=True)
         if "id" in data and "course" in data:
             if isinstance(data["id"], str) and isinstance(data["course"], str):
                 status, response = dh.start_work(data["id"], data["course"])
                 if status:
+                    times.append({"path": "/start-work", "time": time() - start})
                     return Response(response="All good!",
                                     status=200)
                 else:
@@ -102,13 +104,14 @@ def stop_work():
 
     :return:
     """
-
+    start = time()
     if request.is_json:
         data = request.json
         if "id" in data and "time" in data:
             if isinstance(data["id"], str) and isinstance(data["time"], int):
                 status, response = dh.stop_work(data["id"], data["time"])
                 if status:
+                    times.append({"path": "/stop-work", "time": time() - start})
                     return Response(response="All good!",
                                     status=200)
                 else:
@@ -146,6 +149,7 @@ def signup():
 
     :return:
     """
+    start = time()
     if request.is_json:
         data = request.json
         if "email" in data and "name" in data and "password" in data and "admin" in data:
@@ -155,6 +159,7 @@ def signup():
                 status, msg = dh.add_user(data["email"], data["name"], data["password"], data["admin"] == 1)
 
                 if status:
+                    times.append({"path": "/signup", "time": time() - start})
                     return Response(200, "Success")
                 else:
                     if msg != "Server error":
@@ -192,11 +197,13 @@ def login():
                     "message":  <error_message>  (only if not successful)
                 }
       """
+    start = time()
     if request.is_json:
         data = request.json
         if "email" in data and "password" in data:
             if isinstance(data["email"], str) and isinstance(data["password"], str):
                 result = dh.verify_user(data["email"], data["password"])
+                times.append({"path": "/user/login", "time": time() - start})
                 return jsonify(result)
             else:
                 return Response(status=400, response="Incorrect format")
@@ -225,11 +232,13 @@ def get_courses():
         }
     :return:
     """
+    start = time()
     #TODO: fix this provisionary user_id from here!!!!!!!!!!!!!!
     uid = "ecc6b34288d5c96494cd84efa927ab27023b22d59b6c4b6c412b1c9a5515e720"
 
     result = dh.get_courses_list(uid)
 
+    times.append({"path": "/get-courses", "time": time() - start})
     return jsonify(result)
 
 
@@ -253,11 +262,13 @@ def check_session():
                 "message": <Error message>      (only if not successful)
             }
     """
+    start = time()
     if request.is_json:
         data = request.json
         if "token" in data:
             if isinstance(data["token"], str):
                 result = dh.is_token_still_valid(data["token"])
+                times.append({"path": "/user/valid-session", "time": time() - start})
                 return jsonify(result)
             else:
                 return Response(400, "Invalid format")
@@ -300,10 +311,12 @@ def logout():
             }
 
     """
+    start = time()
     if request.is_json:
         data = request.json
         if "id" in data and isinstance(data["id"], str):
             result = dh.logout_user(data["id"])
+            times.append({"path": "/user/logout", "time": time() - start})
             return jsonify(result)
         else:
             return Response(status=400, response="Wrong request format")
@@ -332,10 +345,12 @@ def user_stats():
                 "message": <ERROR_message>              (only if not successful)
             }
     """
+    start = time()
     if request.is_json:
         data = request.json
         if "asking" in data and "user" in data:
             if isinstance(data["asking"], str) and isinstance(data["user"], str):
+                times.append({"path": "/user/stats/general", "time": time() - start})
                 return jsonify(dh.get_stats_for_user(data["asking"], data["user"]))
             else:
                 return Response(status=400, response="Wrong format")
@@ -359,7 +374,7 @@ def user_history():
             }
     :return:    A rendered template with the user's history (if the asking user has enough rights)
     """
-
+    start = time()
     if request.is_json:
         data = request.json
         if "asking" in data and "user" in data:
@@ -367,6 +382,7 @@ def user_history():
                 resp = dh.get_history_for_user(data["asking"], data["user"])
                 resp["working"] = dh.user_is_working(data["user"])
                 print(resp["working"])
+                times.append({"path": "/user/stats/history", "time": time() - start})
                 return render_template("html/stats/history.html", data=resp)
             else:
                 return Response(status=400, response="Wrong format")
@@ -379,7 +395,9 @@ def user_history():
 @app.route("/stats/leaderboard", methods=["GET", "OPTIONS"])
 @cross_origin()
 def get_leaderboard():
+    start = time()
     data = dh.get_leaderboard()
+    times.append({"path": "/stats/leaderboard", "time": time() - start})
     return render_template("html/stats/leaderboard.html", data=data)
 
 
@@ -403,12 +421,16 @@ def is_working():
                     "message": <ERROR_message>      (only if not successful)
                 }
     """
+    start = time()
     try:
         user_id = request.args.get("id")
     except:
         return Response(status=400, response="Invalid request arguments")
 
-    return jsonify(dh.user_is_working(user_id))
+    data = dh.user_is_working(user_id)
+
+    times.append({"path": "/user/is-working", "time": time() - start})
+    return jsonify(data)
 
 
 @app.route("/working/update-time", methods=["PUT", "OPTIONS"])
@@ -423,6 +445,9 @@ def update_time():
 
     :return:    A Response based on the result of the update
     """
+
+    start = time()
+
     try:
         id = request.args.get("id")
         time = int(request.args.get("time"))
@@ -431,6 +456,7 @@ def update_time():
 
     status, msg = dh.update_time(id, time)
 
+    times.append({"path": "/working/update-time", "time": time() - start})
     if status:
         return Response(status=200, response="All good")
     else:
@@ -440,7 +466,9 @@ def update_time():
 @app.route("/courses", methods=["GET", "OPTIONS"])
 @cross_origin()
 def courses():
+    start = time()
     data = dh.get_courses_list_with_details()
+    times.append({"path": "/courses", "time": time() - start})
     return render_template("html/courses.html", data=data["courses"])
 
 
@@ -456,11 +484,13 @@ def account_info():
 
     :return:    A rendered HTML template with all the required information and functionalities
     """
+    start = time()
 
     id_asker = request.args.get("id_asker")
     id_user = request.args.get("id_user")
     data = dh.get_user_details(id_asker, id_user)
 
+    times.append({"path": "/user/info", "time": time() - start})
     return render_template("html/user-info.html", data=data)
 
 
@@ -487,12 +517,14 @@ def update_user_password():
                     "message":      <ERROR_message>     (only if not successful)
                 }
     """
-
+    start = time()
     if request.is_json:
         data = request.json
         if dictionary_has_cols(("id_user", "id_admin", "new_pass"), data):
+            times.append({"path": "/user/update/password", "time": time() - start})
             return jsonify(dh.update_user_password_as_admin(data["id_admin"], data["id_user"], data["new_pass"]))
         elif dictionary_has_cols(("id_user", "old_pass", "new_pass"), data):
+            times.append({"path": "/user/update/password", "time": time() - start})
             return jsonify(dh.update_user_password(data["id_user"], data["old_pass"], data["new_pass"]))
         else:
             return Response(status="500", response="invalid JSON format")
@@ -521,9 +553,11 @@ def update_user_name():
                 "message":   <ERROR_message>    (only if not successful)
             }
     """
+    start = time()
     if request.is_json:
         data = request.json
         if dictionary_has_cols(("id_updater", "id_user", "new_name"), data):
+            times.append({"path": "/user/update/time", "time": time() - start})
             return jsonify(dh.update_user_name(data["id_updater"], data["id_user"], data["new_name"]))
         else:
             return Response(status="500", response="invalid JSON format")
@@ -544,6 +578,7 @@ def stop_work_forced():
                                                      id_user=<id of the user that stops working>
     :return:
     """
+    start = time()
 
     try:
         id_asker = request.args.get("id_asker")
@@ -553,30 +588,17 @@ def stop_work_forced():
 
     sts, msg = dh.force_stop_work(id_asker, id_user)
 
+    times.append({"path": "/stop-work/forced", "time": time() - start})
+
     if sts:
         return Response(status=200)
     else:
         return Response(status=400, response=msg)
 
-@app.before_request
-@cross_origin()
-def set_start():
-    global start_time
-    global requests_count
-    if request.method != "OPTIONS":
-        start_time = time()
-        requests_count += 1
-
-@app.after_request
-@cross_origin()
-def log_time(exception=None):
-    global start_time
-    times.append(time() - start_time)
-
 
 def display_stats():
-    print("TOTAL NUMBER OF REQUESTS: ", requests_count)
-    print("REQUEST HANDLING MEAN: ", sum(times)/len(times))
+    print("TOTAL NUMBER OF REQUESTS: ", len(times))
+    print("REQUEST HANDLING MEAN: ", sum([x["time"] for x in times])/len(times))
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
