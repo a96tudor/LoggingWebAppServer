@@ -640,4 +640,4 @@ def display_stats(times):
 if __name__ == "__main__":
     global times
     app.run(port=5000, debug=True)
-    atexit.register(display_stats, times)
+    atexit.register(display_stats, times=times)
