@@ -1331,6 +1331,7 @@ class DatabaseHandler:
                     self._execute_SELECT("course_categories", None, ["id"])
                 )
             except:
+                print("error getting categories")
                 return False, "Database failure"
         else:
             # Adding only the ids of the categories from the list
@@ -1348,6 +1349,7 @@ class DatabaseHandler:
             try:
                 self._execute_INSERT("rights", ["uid", "cid"], uid, cid)
             except:
+                print("Error setting rights")
                 return False, "Database failure"
 
         return True, ""
