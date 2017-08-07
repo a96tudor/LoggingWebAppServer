@@ -631,16 +631,20 @@ def stop_work_forced():
     else:
         return Response(status=400, response=msg)
 
-
+@app.route("/admin/get-times", methods=["GET", "OPTIONS"])
+@cross_origin()
 def display_stats():
     global times
-    print(times)
-    print("TOTAL NUMBER OF REQUESTS: ", len(times))
-    print("REQUEST HANDLING MEAN: ", sum([x["time"] for x in times])/len(times))
+    result = {
+        "breakdown": times,
+        "total": len(times),
+        "mean": sum([x["time"] for x in times])/len(times) if len(times) != 0 else 0
+    }
 
+    return jsonify(result)
+g
 if __name__ == "__main__":
     try:
         app.run(port=5000, debug=True)
     finally:
-        display_stats()
-        
+        print("This sucks")
