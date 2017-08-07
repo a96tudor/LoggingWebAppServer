@@ -403,6 +403,7 @@ def user_history():
                 resp["working"] = dh.user_is_working(data["user"])
                 print(resp["working"])
                 times.append({"path": "/user/stats/history", "time": time() - start})
+                print(times)
                 return render_template("html/stats/history.html", data=resp)
             else:
                 return Response(status=400, response="Wrong format")
@@ -420,6 +421,7 @@ def get_leaderboard():
     start = time()
     data = dh.get_leaderboard()
     times.append({"path": "/stats/leaderboard", "time": time() - start})
+    print(times)
     return render_template("html/stats/leaderboard.html", data=data)
 
 
