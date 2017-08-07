@@ -632,6 +632,7 @@ def stop_work_forced():
         return Response(status=400, response=msg)
 
 
+@atexit
 def display_stats(times):
     print(times)
     print("TOTAL NUMBER OF REQUESTS: ", len(times))
@@ -639,5 +640,7 @@ def display_stats(times):
 
 if __name__ == "__main__":
     global times
-    app.run(port=5000, debug=True)
-    atexit.register(display_stats, times=times)
+    try:
+        app.run(port=5000, debug=True)
+    finally:
+        display_stats(times)
