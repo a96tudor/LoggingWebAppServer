@@ -632,7 +632,6 @@ def stop_work_forced():
         return Response(status=400, response=msg)
 
 
-@atexit
 def display_stats(times):
     print(times)
     print("TOTAL NUMBER OF REQUESTS: ", len(times))
