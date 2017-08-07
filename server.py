@@ -20,6 +20,8 @@ def dictionary_has_cols(cols, dictionary):
 @app.route("/user-validate", methods=["POST", "OPTIONS"])
 @cross_origin()
 def validate_user():
+    global times
+
     start = time()
     with app.app_context():
         if request.is_json:
@@ -59,6 +61,8 @@ def start_work():
 
     :return:    A Response to the given request
     """
+    global times
+
     start = time()
     if request.is_json:
         data = request.get_json(force=True)
@@ -104,6 +108,8 @@ def stop_work():
 
     :return:
     """
+    global times
+
     start = time()
     if request.is_json:
         data = request.json
@@ -149,6 +155,8 @@ def signup():
 
     :return:
     """
+    global times
+
     start = time()
     if request.is_json:
         data = request.json
@@ -197,6 +205,8 @@ def login():
                     "message":  <error_message>  (only if not successful)
                 }
       """
+    global times
+
     start = time()
     if request.is_json:
         data = request.json
@@ -232,6 +242,8 @@ def get_courses():
         }
     :return:
     """
+    global times
+
     start = time()
     #TODO: fix this provisionary user_id from here!!!!!!!!!!!!!!
     uid = "ecc6b34288d5c96494cd84efa927ab27023b22d59b6c4b6c412b1c9a5515e720"
@@ -262,6 +274,8 @@ def check_session():
                 "message": <Error message>      (only if not successful)
             }
     """
+    global times
+
     start = time()
     if request.is_json:
         data = request.json
@@ -311,6 +325,8 @@ def logout():
             }
 
     """
+    global times
+
     start = time()
     if request.is_json:
         data = request.json
@@ -345,6 +361,8 @@ def user_stats():
                 "message": <ERROR_message>              (only if not successful)
             }
     """
+    global times
+
     start = time()
     if request.is_json:
         data = request.json
@@ -374,6 +392,8 @@ def user_history():
             }
     :return:    A rendered template with the user's history (if the asking user has enough rights)
     """
+    global times
+
     start = time()
     if request.is_json:
         data = request.json
@@ -395,6 +415,8 @@ def user_history():
 @app.route("/stats/leaderboard", methods=["GET", "OPTIONS"])
 @cross_origin()
 def get_leaderboard():
+    global times
+
     start = time()
     data = dh.get_leaderboard()
     times.append({"path": "/stats/leaderboard", "time": time() - start})
@@ -421,6 +443,8 @@ def is_working():
                     "message": <ERROR_message>      (only if not successful)
                 }
     """
+    global times
+
     start = time()
     try:
         user_id = request.args.get("id")
@@ -445,6 +469,7 @@ def update_time():
 
     :return:    A Response based on the result of the update
     """
+    global times
 
     start = time()
 
@@ -466,6 +491,8 @@ def update_time():
 @app.route("/courses", methods=["GET", "OPTIONS"])
 @cross_origin()
 def courses():
+    global times
+
     start = time()
     data = dh.get_courses_list_with_details()
     times.append({"path": "/courses", "time": time() - start})
@@ -484,6 +511,8 @@ def account_info():
 
     :return:    A rendered HTML template with all the required information and functionalities
     """
+    global times
+
     start = time()
 
     id_asker = request.args.get("id_asker")
@@ -553,6 +582,8 @@ def update_user_name():
                 "message":   <ERROR_message>    (only if not successful)
             }
     """
+    global times
+
     start = time()
     if request.is_json:
         data = request.json
@@ -578,6 +609,9 @@ def stop_work_forced():
                                                      id_user=<id of the user that stops working>
     :return:
     """
+
+    global times
+
     start = time()
 
     try:
@@ -597,6 +631,8 @@ def stop_work_forced():
 
 
 def display_stats():
+    global times
+    print(times)
     print("TOTAL NUMBER OF REQUESTS: ", len(times))
     print("REQUEST HANDLING MEAN: ", sum([x["time"] for x in times])/len(times))
 
