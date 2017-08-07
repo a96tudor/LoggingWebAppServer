@@ -641,7 +641,6 @@ if __name__ == "__main__":
     try:
         app.run(port=5000, debug=True)
     finally:
-        global times
 
         print(times)
         print("TOTAL NUMBER OF REQUESTS: ", len(times))
