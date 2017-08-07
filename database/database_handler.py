@@ -142,8 +142,9 @@ class DatabaseHandler:
             query += " LIMIT " + str(limit)
 
         if args is None:
-            args=[]
+            args = []
 
+        print(query, args)
         con = sql.connect(self._dbName)
         cur = con.cursor()
         cur.execute(query, *args)
@@ -1338,7 +1339,7 @@ class DatabaseHandler:
             categories = list()
             for right in rights:
                 try:
-                    id = self._execute_SELECT("course_categories", "name=?", ["id"], args=[right])
+                    id = self._execute_SELECT("course_categories", "category_name=?", ["id"], args=[right])
                 except:
                     return False, "Database failure"
 
