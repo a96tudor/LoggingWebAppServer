@@ -129,7 +129,7 @@ class DatabaseHandler:
         cols_string = ",".join(cols)
         query = "SELECT " + cols_string + " FROM " + str(table)
 
-        if not conds is None:
+        if conds is None:
             query += " WHERE " + str(conds)
 
         if order is not None:
