@@ -477,11 +477,11 @@ def update_time():
 
     try:
         id = request.args.get("id")
-        time = int(request.args.get("time"))
+        t = int(request.args.get("time"))
     except:
         return Response(status=400, response="Invalid request arguments")
 
-    status, msg = dh.update_time(id, time)
+    status, msg = dh.update_time(id, t)
 
     times.append({"path": "/working/update-time", "time": time() - start})
     if status:
