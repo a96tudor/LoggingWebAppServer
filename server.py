@@ -642,7 +642,7 @@ def display_stats():
     }
 
     return jsonify(result)
-g
+
 if __name__ == "__main__":
     try:
         app.run(port=5000, debug=True)
