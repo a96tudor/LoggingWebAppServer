@@ -632,7 +632,8 @@ def stop_work_forced():
         return Response(status=400, response=msg)
 
 
-def display_stats(times):
+def display_stats():
+    global times
     print(times)
     print("TOTAL NUMBER OF REQUESTS: ", len(times))
     print("REQUEST HANDLING MEAN: ", sum([x["time"] for x in times])/len(times))
@@ -641,7 +642,5 @@ if __name__ == "__main__":
     try:
         app.run(port=5000, debug=True)
     finally:
-
-        print(times)
-        print("TOTAL NUMBER OF REQUESTS: ", len(times))
-        print("REQUEST HANDLING MEAN: ", sum([x["time"] for x in times]) / len(times))
+        display_stats()
+        
