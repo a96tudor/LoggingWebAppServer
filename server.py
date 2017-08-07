@@ -559,6 +559,7 @@ def stop_work_forced():
         return Response(status=400, response=msg)
 
 @app.before_request
+@cross_origin()
 def set_start():
     global start_time
     global requests_count
@@ -567,6 +568,7 @@ def set_start():
         requests_count += 1
 
 @app.after_request
+@cross_origin()
 def log_time(exception=None):
     global start_time
     if request.method !="OPTIONS":
