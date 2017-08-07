@@ -1,10 +1,16 @@
 from flask import Flask, request, jsonify, Response, render_template
 from database.database_handler import DatabaseHandler as DH
 from flask_cors import CORS, cross_origin
+from time import time
+import atexit
 
 dh = DH("database/SMU-logs.db")
 app = Flask(__name__)
 CORS(app)
+start_time = None
+times = list()
+requests_count = 0
+
 
 def dictionary_has_cols(cols, dictionary):
     for col in cols:
@@ -552,6 +558,24 @@ def stop_work_forced():
     else:
         return Response(status=400, response=msg)
 
+@app.before_request
+def set_start():
+    global start_time
+    global requests_count
+    if request.method != "OPTIONS":
+        start_time = time()
+        requests_count += 1
+
+@app.after_request
+def log_time():
+    if request.method !="OPTIONS":
+        times.append(time() - start_time)
+
+
+def display_stats():
+    print("TOTAL NUMBER OF REQUESTS: ", requests_count)
+    print("REQUEST HANDLING MEAN: ", sum(times)/len(times))
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
+    atexit.register(display_stats)
