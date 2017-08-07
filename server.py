@@ -571,8 +571,7 @@ def set_start():
 @cross_origin()
 def log_time(exception=None):
     global start_time
-    if request.method !="OPTIONS":
-        times.append(time() - start_time)
+    times.append(time() - start_time)
 
 
 def display_stats():
