@@ -129,7 +129,7 @@ class DatabaseHandler:
         cols_string = ",".join(cols)
         query = "SELECT " + cols_string + " FROM " + str(table)
 
-        if conds is None:
+        if conds is not None:
             query += " WHERE " + str(conds)
 
         if order is not None:
@@ -1339,7 +1339,7 @@ class DatabaseHandler:
             categories = list()
             for right in rights:
                 try:
-                    id = self._execute_SELECT("course_categories", "category_name=?", ["id"], args=[right])
+                    id = self._execute_SELECT(table="course_categories", conds="category_name=?", cols=["id"], args=[right])
                 except:
                     return False, "Database failure"
 
