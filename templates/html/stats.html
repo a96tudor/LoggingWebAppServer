@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<style>
+    div.data-container {
+        align-content: center;
+        align-self: center;
+        text-align: center;
+        color: black;
+        font-weight: bolder;
+        padding: 2%;
+        font-size: 30px;
+    }
+
+    h1.min {
+        color: green;
+    }
+
+    h1.max {
+        color: red;
+    }
+
+</style>
+<body>
+    <div class="data-container">
+        <h1 class="total number"> TOTAL REQUESTS: {{data["total"]}} </h1>
+        <h1 class="mean"> MEAN TIME PER REQUEST: {{data["mean"]}} seconds</h1>
+        <br/>
+        <div class="min-max-container">
+            <h1 class="min">
+                MINIMUM TIME = {{data["min"]}} seconds
+            </h1>
+            <h1 class="max">
+                MAXIMUM TIME = {{data["max"]}} seconds
+            </h1>
+        </div>
+    </div>
+</body>
+</html>

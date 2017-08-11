@@ -109,8 +109,6 @@ class DatabaseHandler:
 
         query += "VALUES " + qmarks
 
-
-
         self._execute_query(query, *args)
 
     def _execute_SELECT(self, table, conds, cols=["*"], limit=None, order=None, groupBy=None, args=None):
@@ -225,6 +223,63 @@ class DatabaseHandler:
         con.commit()
         con.close()
         return results
+
+    def _get_rating(self, uid, cid):
+        """
+
+        :param user_id:             The id of the user that did the rating
+        :param course_name:         The course name we want the rating for
+        :return:                    A dictionary of the form
+
+                                {
+                                    "success": <True/ False>,
+                                    "rating": <Rating for that course from the user>,           (only if successful)
+                                    "message": <ERROR message>                                  (only if not successful)
+                                }
+        """
+
+        try:
+            rating = self._execute_SELECT("ratings", conds="uid=? AND cid=?", cols=["rating"], args=[uid, cid])
+        except:
+            return {"success": False, "message": "Database failure"}
+
+        if len(rating) == 0:
+            # No rating provided yet
+            return {"success": True, "rating": 0}
+        else:
+            # otherwise, just return the value
+            return {"success": True, "rating": rating[0][0]}
+
+    def _get_rating_average_for_course(self, cid):
+        """
+
+        :param cid:         The course id we want the rating for
+        :return:                    A dictionary of the form:
+
+                                    {
+                                        "success": <True/ False>,
+                                        "rating": <Average rating for the course>,                  (only if successful)
+                                                                                                        (as a float)
+                                        "floored_rating": <Floored average rating for the course>   (only if successful),
+                                        "count":    <number of ratings for that course>             (only if successful)
+                                        "message": <ERROR message>                                  (only if not successful)
+                                    }
+        """
+
+        query = "SELECT AVG(rating), COUNT(rating) FROM " \
+                "ratings WHERE cid=?"
+
+        try:
+            average = self._execute_SELECT_from_query(query, cid)
+        except:
+            return {"success": False, "message": "Invalid course name"}
+
+        return {
+            "success": True,
+            "rating": average[0][0],
+            "floored_rating": int(average[0][0]),
+            "count": average[0][1]
+        }
 
     def start_work(self, email_hash, course):
         """
@@ -743,7 +798,8 @@ class DatabaseHandler:
                                     "course_url": <course_url>,
                                     "started_at": <started_at>,
                                     "logged_at": <time_entry_was_logged>,
-                                    "time":  <no_of_seconds_spent_working>
+                                    "time":  <no_of_seconds_spent_working>,
+                                    "course-rating": <rating from the user for that specific course>
                                 },
                                 { ... },
                                 ...
@@ -774,7 +830,7 @@ class DatabaseHandler:
 
         uid = user[0]
 
-        query = "SELECT c.name, c.url, l.started_at, l.duration, l.logged_at " \
+        query = "SELECT c.name, c.url, l.started_at, l.duration, l.logged_at, c.id " \
                 "FROM logs AS l " \
                 "INNER JOIN courses AS c ON l.cid = c.id " \
                 "WHERE l.uid=" + str(uid) + ";"
@@ -802,6 +858,8 @@ class DatabaseHandler:
             if result[2] is None or result[4] is None:
                 continue
 
+            rating = self._get_rating(uid, result[5])
+
             response["history"].append({
                     "id": id,
                     "course_name": result[0],
@@ -809,6 +867,7 @@ class DatabaseHandler:
                     "started_at": result[2][:-7],
                     "logged_at": result[4][:-7],
                     "time": time.strftime('%H:%M:%S', time.gmtime(result[3])),
+                    "rating": rating["rating"] if rating["success"] else 0
                 })
 
             id += 1
@@ -958,7 +1017,14 @@ class DatabaseHandler:
                                 "commitment_low": <minimum_weekly_commitment>,
                                 "commitment_high": <maximum_weekely_commitment>,
                                 "weeks": <number_of_weeks_required>,
-                                "category": <category_name>
+                                "category": <category_name>,
+                                "rating": {
+                                    "success":  <True/ False>,
+                                    "rating":   <floating point average rating for the course>,
+                                    "floored_rating" <floored average rating for the course>,
+                                    "count": <number of ratings for this course>,
+                                    "message": <ERROR message>          (only if rating function is not successful)
+                                }
                             },
                             {...},
                             ...
@@ -968,7 +1034,7 @@ class DatabaseHandler:
         """
 
         query = "SELECT c.name, c.url, c.syllabus, c.about, c.notes, " \
-                    "c.weekly_commitment_low, c.weekly_commitment_high, c.number_weeks, cc.category_name " \
+                    "c.weekly_commitment_low, c.weekly_commitment_high, c.number_weeks, cc.category_name, c.id " \
                 "FROM courses AS c " \
                 "INNER JOIN course_categories AS cc ON c.cid = cc.id;"
 
@@ -988,8 +1054,7 @@ class DatabaseHandler:
         id = 1
 
         for course in courses:
-            result["courses"].append(
-                {
+            result["courses"].append( {
                     "id": id,
                     "name": course[0],
                     "url": course[1],
@@ -1000,7 +1065,8 @@ class DatabaseHandler:
                     "commitment_high": course[6],
                     "weeks": course[7],
                     "category": course[8],
-                    "function": "start_work('" + course[0] + "','" + course[1] + "');"
+                    "function": "start_work('" + course[0] + "','" + course[1] + "');",
+                    "rating": self._get_rating_average_for_course(course[9])
                 }
             )
             id += 1
@@ -1410,3 +1476,56 @@ class DatabaseHandler:
             result["rights"].append(new_entry)
 
         return result
+
+    def add_rating(self, user_id, course_name, rating_value):
+        """
+
+        :param user_id:             The id of the user adding the rating
+        :param course_name:         The name of the course adding the rating for
+        :param rating:              The rating for the course. Has to be between 0 and 5
+
+        :return:                    - success: True/ False
+                                    - message: ERROR message (if not successful)
+                                               "" otherwise
+        """
+        user = self._get_user_from_hash(user_id)
+
+        if user is None:
+            return False, "Invalid user ID"
+
+        uid = user[0]
+
+        try:
+            course = self._execute_SELECT("courses", conds="name=?", cols=["id"], args=[course_name])
+        except:
+            return False, "Database failure"
+
+        if len(course) == 0:
+            return False, "Invalid course name"
+
+        cid = course[0][0]
+
+        try:
+            rating = self._execute_SELECT("ratings", conds="uid=? AND cid=?", args=[uid, cid])
+        except:
+            return False, "Database failure"
+
+        if not (isinstance(rating_value, int) and rating_value >= 0 and rating_value <= 5):
+            return False, "Illegal rating value"
+
+        if len(rating) == 0:
+            # No previous rating for this course, so insert new entry
+            try:
+                self._execute_INSERT("ratings", ["uid", "cid", "rating"], uid, cid, rating_value)
+            except:
+                return False, "Database failure"
+            return True, ""
+        else:
+            # We have to update the entry
+            id = rating[0][0]
+            try:
+                self._execute_UPDATE("ratings", ["rating"], [rating_value], "id=?", [id])
+            except:
+                return False, "Database Failure"
+
+

@@ -4,8 +4,9 @@
   Leaderboard
 </h1>
 
-<div class="table-wrapper">
-	<table>
+<input type="text" placeholder="Enter Keywords..." id="filter-input" onkeydown="filterTableContents()" value
+
+<table id="table-contents">
     <thead>
       <tr>
         <th>Rank</th>
@@ -51,8 +52,7 @@
         </td>
       </tr>
     </tfoot>
-  </table>
-</div>
+</table>
 
 {% else %}
 

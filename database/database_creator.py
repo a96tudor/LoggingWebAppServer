@@ -18,6 +18,20 @@ def execute_query(query, *args):
     con.close()
 
 
+def create_ratings_table():
+    query = "CREATE TABLE IF NOT EXISTS " \
+            "ratings ( " \
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " \
+                "uid INT NOT NULL, " \
+                "cid INT NOT NULL, " \
+                "rating INT NOT NULL " \
+                "FOREIGN KEY(uid) REFERENCES users(id), " \
+                "FOREIGN KEY(cid) REFERENCES courses(id) " \
+            ");"
+
+    execute_query(query)
+
+
 def create_rights_table():
     query = "CREATE TABLE IF NOT EXISTS " \
             "rights ( " \
@@ -25,7 +39,7 @@ def create_rights_table():
                 "uid INT NOT NULL, " \
                 "cid INT NOT NULL, " \
                 "FOREIGN KEY(uid) REFERENCES users(id), " \
-                "FOREIGN KEY(cid) REFERENCES courses(id) " \
+                "FOREIGN KEY(cid) REFERENCES course_categories(id) " \
             ");"
     execute_query(query)
 
@@ -135,6 +149,8 @@ def create_all(path):
     print("Created logs table!")
     create_rights_table()
     print("Created rights table!")
+    create_ratings_table()
+    print("Created ratings table!")
     print("Done!")
 
 if __name__ == "__main__":

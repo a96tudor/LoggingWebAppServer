@@ -4,8 +4,9 @@
     Courses
 </h1>
 
-<div class="table-wrapper">
-	<table>
+<input type="text" id="filter-input" placeholder="Enter keyword here..." onkeydown="filterTableContents()" title="Keyword">
+
+<table id="table-contents">
     <thead>
       <tr>
         <th>No.</th>
@@ -62,8 +63,7 @@
             </tr>
         {% endfor %}
     </tbody>
-  </table>
-</div>
+</table>
 
 {% else %}
 

@@ -628,6 +628,7 @@ def stop_work_forced():
     else:
         return Response(status=400, response=msg)
 
+
 @app.route("/admin/get-times", methods=["GET", "OPTIONS"])
 @cross_origin()
 def display_stats():
