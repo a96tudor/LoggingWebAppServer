@@ -97,7 +97,37 @@
                 {% endif %}
             </td>
             <td>
-                Coming soon!
+                <div class="rating">
+                    {% if data["course-rating"] %}
+                        {% if data["course-rating"] > 0 %}
+                            <span class="yellow-star">☆</span>
+                        {% else %}
+                            <span>☆</span>
+
+                        {% if data["course-rating"] > 1 %}
+                            <span class="yellow-star">☆</span>
+                        {% else %}
+                            <span>☆</span>
+
+                        {% if data["course-rating"] > 2 %}
+                            <span class="yellow-star">☆</span>
+                        {% else %}
+                            <span>☆</span>
+
+                        {% if data["course-rating"] > 3 %}
+                            <span class="yellow-star">☆</span>
+                        {% else %}
+                            <span>☆</span>
+
+                        {% if data["course-rating"] > 4 %}
+                            <span class="yellow-star">☆</span>
+                        {% else %}
+                            <span>☆</span>
+
+                    {% else %}
+                        <span>☆</span><span>☆</span><span>☆</span><span>☆</span><span>☆</span>
+                    {% endif %}
+                </div>
             </td>
         </tr>
         {% endfor %}
