@@ -276,9 +276,9 @@ class DatabaseHandler:
 
         return {
             "success": True,
-            "rating": average[0][0],
-            "floored_rating": int(average[0][0]),
-            "count": average[0][1]
+            "rating": average[0][0] if average[0][0] else 0.0,
+            "floored_rating": int(average[0][0]) if average[0][0] else 0,
+            "count": average[0][1] if average[0][1] else 0
         }
 
     def start_work(self, email_hash, course):
