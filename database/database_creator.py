@@ -24,7 +24,7 @@ def create_ratings_table():
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " \
                 "uid INT NOT NULL, " \
                 "cid INT NOT NULL, " \
-                "rating INT NOT NULL " \
+                "rating INT NOT NULL, " \
                 "FOREIGN KEY(uid) REFERENCES users(id), " \
                 "FOREIGN KEY(cid) REFERENCES courses(id) " \
             ");"
