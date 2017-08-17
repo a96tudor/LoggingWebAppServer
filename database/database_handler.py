@@ -1266,7 +1266,7 @@ class DatabaseHandler:
                 }
             )
             id += 1
-
+        print(result)
         return result
 
     def add_user(self, id_adder, email, full_name, admin, rights):
