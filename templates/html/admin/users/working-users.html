@@ -34,11 +34,7 @@
                             </td>
                             <td>
                                 {% if user["name"] %}
-                                    {% if user["user_details_function"] %}
-                                        <a onclick={{user["user_details_function"]}} > {{user["name"]}} </a>
-                                    {% else %}
-                                        {{user["name"]}}
-                                    {% endif %}
+                                    {{user["name"]}}
                                 {% else %}
                                     N/A
                                 {% endif %}
@@ -59,7 +55,7 @@
                                     {% if user["course_details_function"] %}
                                         <a href={{user["course_details_function"]}}> {{user["course"]}}</a>
                                     {% else %}
-                                        {{user["course"]}}
+                                        {{ user["course"] }}
                                     {% endif %}
                                 {% else %}
                                     N/A
