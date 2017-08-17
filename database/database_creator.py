@@ -25,6 +25,7 @@ def create_ratings_table():
                 "uid INT NOT NULL, " \
                 "cid INT NOT NULL, " \
                 "rating INT NOT NULL, " \
+                "rated_at DATE NOT NULL, " \
                 "FOREIGN KEY(uid) REFERENCES users(id), " \
                 "FOREIGN KEY(cid) REFERENCES courses(id) " \
             ");"
@@ -131,6 +132,26 @@ def create_log_table():
     execute_query(query)
 
 
+def create_archive_table():
+    query = "CREATE TABLE IF NOT EXISTS " \
+            "archive (" \
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " \
+                "user_name VARCHAR(100) NOT NULL," \
+                "user_email VARCHAR(254) NOT NULL, " \
+                "course_name VARCHAR(100) NOT NULL, " \
+                "course_category VARCHAR(100) NOT NULL, " \
+                "course_url VARCHAR(500) NOT NULL, " \
+                "course_description TEXT, " \
+                "worked_for INTEGER NOT NULL, " \
+                "started_work DATE NOT NULL, " \
+                "logged_at DATE NOT NULL, " \
+                "archived_at DATE NOT NULL, " \
+                "reason VARCHAR(500) NOT NULL " \                       
+            ");"
+
+    execute_query(query)
+
+
 def create_all(path):
     global db_path
     db_path = path
@@ -151,6 +172,8 @@ def create_all(path):
     print("Created rights table!")
     create_ratings_table()
     print("Created ratings table!")
+    create_archive_table()
+    print("Created archive table")
     print("Done!")
 
 if __name__ == "__main__":

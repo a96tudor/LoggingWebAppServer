@@ -261,7 +261,7 @@ class DatabaseHandler:
                                         "rating": <Average rating for the course>,                  (only if successful)
                                                                                                         (as a float)
                                         "floored_rating": <Floored average rating for the course>   (only if successful),
-                                        "count":    <number of ratings for that course>             (only if successful)
+                                        "count":    <number of ratings for that course>             (only if successful),
                                         "message": <ERROR message>                                  (only if not successful)
                                     }
         """
@@ -280,6 +280,177 @@ class DatabaseHandler:
             "floored_rating": int(average[0][0]) if average[0][0] else 0,
             "count": average[0][1] if average[0][1] else 0
         }
+
+    def _did_user_work_on_course(self, uid, cid):
+        """
+
+        :param uid:         ID of the user
+        :param cid:         ID of the course
+        :return:            True/ False
+        """
+        query_result = self._execute_SELECT("logs", conds="uid=? AND cid=?", cols=["id"], args=[uid, cid])
+
+        return len(query_result) > 0
+
+    def _delete_logs_based_on_category(self, category_name):
+        """
+                Method that deletes all the logs based on a category name.
+                *IMPORTANT: * only to be used after adding them to the archive!!
+
+        :param category_name:       The name of the category we want to base our delete on
+        :return:                    True - if successful
+                                    False - otherwise
+        """
+        query = "DELETE FROM logs AS l " \
+                "WHERE l.cid IN (" \
+                    "SELECT c.id " \
+                        "FROM courses AS c " \
+                        "INNER JOIN course_catergories AS cc " \
+                    "WHERE cc.category_name = ?" \
+                ")"
+
+        try:
+            self._execute_query(query, category_name)
+        except:
+            return False
+
+        return True
+
+    def _create_partial_archive(self, conds, value, reason):
+        """
+                Method that archives logs based on the conditions provided
+
+        :param conds:           The conditions we test when we extract the data
+        :param value:          The values we test the columns against
+        :param reason:          The reason why we archive the data
+
+        :return:                True - if successful
+                                False - otherwise
+        """
+        select_query = "SELECT u.name, u.email, c.name, c.url, c.description, cc.category_name, l.duration, " \
+                        "l.started_at, l.logged_at " \
+                            "FROM logs AS l " \
+                            "INNER JOIN courses AS c " \
+                                "ON l.cid = c.id " \
+                            "INNER JOIN course_categories AS cc " \
+                                "ON c.cid = cc.id " \
+                             "INNER JOIN users AS u " \
+                                "ON u.id = l.uid " \
+                        "WHERE " + conds + ";" \
+
+        try:
+            raw_data = self._execute_SELECT_from_query(select_query, value)
+        except:
+            return False
+
+
+        return self._insert_into_archive(raw_data, reason)
+
+    def _insert_logs_into_archive(self, partial_data, reason):
+        """
+            Method that inserts data into the archive
+
+        :param partial_data:            partial data (i.e. without archive date and reason)
+        :param reason:                  the reason for archiving
+
+        :return:                        True - if successful
+                                        False - otherwise
+        """
+        data_to_archive = list()
+
+        extra_data = (dt.now(), reason)
+
+        for entry in partial_data:
+            data_to_archive.append(entry + extra_data)
+
+        insert_query = "INSERT INTO logs_archive (" \
+                            "user_name, user_email, " \
+                            "course_name, course_url, course_description, course_category, " \
+                            "worked_for, started_at, logged_at, " \
+                            "archived_at, reason" \
+                       ") VALUES (?,?,?,?,?,?,?,?,?,?,?)"
+
+        try:
+            conn = sql.connect(self._dbName)
+            cur = conn.cursor()
+            cur.executemany(insert_query, data_to_archive)
+            conn.commit()
+        except:
+            return False
+        finally:
+            conn.close()
+
+        return True
+
+    def _get_courses_user_worked_on(self, uid):
+        """
+            Private method that returns an aggregate list of courses the user worked on, and the rating he/she gave to
+        every specific course (if any)
+
+        :param uid:         the uid of the user (corresponding to the uid from the database)
+
+        :return:            A dictionary with the following format:
+
+                        {
+                            "success": <True/ False>,
+                            "courses": [                                    (only if successful)
+                                {
+                                    "id": <id of the entry>,
+                                    "name": <course name>,
+                                    "link": <course link>,
+                                    "worked_for": <total no. of seconds the user worked on this course>,
+                                    "rating": <rating given to the course>,
+                                    "rated_at": <date the rating was last updated>
+                                },
+                                {
+                                    ...
+                                },
+                                ...
+                            ],
+                            "message": <ERROR message>                      (only if not successful)
+                        }
+        """
+        query = "SELECT c.name, c.link, SUM(l.duration), " \
+                        "(CASE r.rating " \
+                            "WHEN NOT r.rating IS NULL r.rating " \
+                            "ELSE 0), " \
+                        "(CASE r.rated_at " \
+                            "WHEN NOT r.rated_at IS NULL r.rated_at " \
+                            "ELSE '-') " \
+                    "FROM logs AS l " \
+                    "INNER JOIN users AS u " \
+                        "ON u.id = l.uid " \
+                    "INNER JOIN courses AS c " \
+                        "ON c.id = l.cid " \
+                    "LEFT OUTER JOIN ratings AS r " \
+                        "ON r.uid = u.id AND r.cid = c.id " \
+                "WHERE u.id=? " \
+                "GROUP BY c.id;"
+
+        try:
+            courses = self._execute_SELECT_from_query(query, uid)
+        except:
+            return {"success": False, "message": "Database failure"}
+
+        result = {
+            "success": True,
+            "courses": list()
+        }
+        id = 1
+
+        for course in courses:
+            new_entry = {
+                "id": id,
+                "name": course[0],
+                "link": course[1],
+                "worked_for": course[2],
+                "rating": course[3],
+                "rated_at": course[4]
+            }
+            result["courses"].append(new_entry)
+            id += 1
+
+        return result
 
     def start_work(self, email_hash, course):
         """
@@ -410,7 +581,7 @@ class DatabaseHandler:
 
         return True, ""
 
-    def verify_user(self, email, password):
+    def user_login(self, email, password):
         """
                 Method that tries to authenticate a given user, based on
             a pair of credentials
@@ -418,17 +589,17 @@ class DatabaseHandler:
         :param email_hash:       The user's email to verify
         :param password:    The user's password to verify
         :return:
-            A dictionary witht the following format:
+            A dictionary with the following format:
                 {
                     "success": <True/ False>,
                     "id": <user_id>,               (only if successful or if user not validated)
                     "name": <user's_name>        (only if successful)
                     "token": <login_token>,      (only if successful)
-                    "ttl":   <TTL>,              (only if successful)
+                    "ttl":   <TTL>,              (only if successful),
+                    "is_admin": <wether the user loggin in is an admin or not>      (only if successful)
                     "message":  <error_message>  (if necessary)
                 }
         """
-
 
         if not isinstance(email, str):
             return {
@@ -437,7 +608,7 @@ class DatabaseHandler:
             }
 
         try:
-            user = self._execute_SELECT("users", "email='"+email + "'")
+            user = self._execute_SELECT("users", conds="email=?", args=[email])
         except:
             return {
                 "success":  False,
@@ -456,7 +627,8 @@ class DatabaseHandler:
 
                 def get_new_token(ttl):
                     """
-                        Inner function that creates
+                        Inner function that creates a unique session token for the user
+
                     :return:
                     """
                     token = secrets.token_hex(64)
@@ -469,10 +641,11 @@ class DatabaseHandler:
                         "id": self._get_sha256_encryption(user[1]),
                         "name": user[2],
                         "token": token,
-                        "ttl": ttl
+                        "ttl": ttl,
+                        "is_admin": user[4] == 1
                     }
 
-                logged_in = self._execute_SELECT("logged_in", "uid="+str(user[0]), ["token"])
+                logged_in = self._execute_SELECT("logged_in", conds="uid=?", cols=["token"], args=[user[0]])
                 if len(logged_in) == 0:
                     return get_new_token(self._DEFAULT_TTL)
                 else:
@@ -483,7 +656,8 @@ class DatabaseHandler:
                                 "id": self._get_sha256_encryption(user[1]),
                                 "name": user[2],
                                 "token": logged_in[0][0],
-                                "ttl": self._DEFAULT_TTL
+                                "ttl": self._DEFAULT_TTL,
+                                "is_admin": user[4] == 1
                             }
                     else:
                         return get_new_token(self._DEFAULT_TTL)
@@ -591,44 +765,56 @@ class DatabaseHandler:
         :return:    The users currently working, as a dictionary of the format:
 
                     {
-                        "users": [
+                        "success": <True/ False>
+                        "users": [                                          (only if successful)
                             {
                                 "id": <id>,
                                 "name": <full_name>,
-                                "email": <hashed_email>,
+                                "email": <actual email>,
                                 "since": <working_since>,
-                                "worked for":   <last logged time for that user>
-                                "course": <course_name>
+                                "worked_for":   <last logged time for that user>,
+                                "course": <course_name>,
+                                "user_details_function":  <JS function to be called in order to get more user details>,
+                                "mailto_link":  <link to enable mailto function>,
+                                "stop_work_function": <JS function to be called when we want to stop work>,
+                                "course_details_function": <JS function to be called when we want more details on the course>
                             },
                             ...
-                        ]
+                        ],
+                        "message": <ERROR message>                          (only if not successful)
                     }
         """
-        query = "SELECT u.full_name, u.email, c.name, w.since, w.time FROM " \
-                "working AS w " \
-                "INNER JOIN users AS u ON w.uid=u.id " \
-                "INNER JOIN courses AS c ON w.cid=c.id ";
+        query = "SELECT u.full_name, u.email, c.name, w.since, w.time " \
+                    "FROM working AS w " \
+                    "INNER JOIN users AS u " \
+                        "ON w.uid=u.id " \
+                    "INNER JOIN courses AS c " \
+                        "ON w.cid=c.id ";
 
         try:
             results = self._execute_SELECT_from_query(query)
         except:
-            print("SERVER ERROR!")
-            return None
+            return {"success": False, "message": "Database failure"}
 
         working_users = {
+            "success": True,
             "users": list()
         }
 
-        id = 0
+        id = 1
 
         for result in results:
             new_entry = dict()
             new_entry["id"] = id
             new_entry["name"] = result[0]
-            new_entry["email"] = self._get_sha256_encryption(result[1])
+            new_entry["email"] = result[1]
             new_entry["course"] = result[2]
             new_entry["since"] = result[3]
-            new_entry["worked for"] = result[4]
+            new_entry["worked_for"] = result[4]
+            new_entry["user_details_function"] = "get_user_details('" + self._get_sha256_encryption(result[1]) + "')"
+            new_entry["mailto_link"] = "mailto:" + result[1]
+            new_entry["stop_work_function"] = "stop_work('" + self._get_sha256_encryption(result[1]) + "')"
+            new_entry["course_details_function"] = "get_course_details('" + result[2] + "')"
             id += 1
             working_users["users"].append(new_entry)
 
@@ -998,9 +1184,13 @@ class DatabaseHandler:
 
         return result
 
-    def get_courses_list_with_details(self):
+    def get_courses_list_with_details(self, user_id):
         """
                 Method that returns a list of courses, with details
+
+        :param user_id:     The id of the user asking for the course list
+                        Required in order to only display the courses that the user
+                                    is allowed to access
 
         :return:    a dictionary of the format:
 
@@ -1033,13 +1223,22 @@ class DatabaseHandler:
                     }
         """
 
+        user = self._get_user_from_hash(user_id)
+
+        if user is None:
+            return {"success": False, "message": "Invalid user ID"}
+
+        uid = user[0]
+
         query = "SELECT c.name, c.url, c.syllabus, c.about, c.notes, " \
                     "c.weekly_commitment_low, c.weekly_commitment_high, c.number_weeks, cc.category_name, c.id " \
                 "FROM courses AS c " \
-                "INNER JOIN course_categories AS cc ON c.cid = cc.id;"
+                "INNER JOIN course_categories AS cc ON c.cid = cc.id " \
+                "INNER JOIN rights AS r ON cc.id=r.cid " \
+                "WHERE r.uid =?"
 
         try:
-            courses = self._execute_SELECT_from_query(query)
+            courses = self._execute_SELECT_from_query(query, uid)
         except:
             return {
                 "success": False,
@@ -1066,7 +1265,8 @@ class DatabaseHandler:
                     "weeks": course[7],
                     "category": course[8],
                     "function": "start_work('" + course[0] + "','" + course[1] + "');",
-                    "rating": self._get_rating_average_for_course(course[9])
+                    "rating": self._get_rating_average_for_course(course[9]),
+                    "worked_on": self._did_user_work_on_course(uid, course[9])
                 }
             )
             id += 1
@@ -1200,8 +1400,21 @@ class DatabaseHandler:
                             "success": <True/False>,
                             "admin":   <True/False>,        (only if successful)   --- if the asker is admin
                             "name":    <user's name>,       (only if successful)
-                            "is_admin": <True/False>,       (only if successful and admin)
-                            "access":   <courses categories that the user has access to>    (only if successful and admin)
+                            "email":   <user's email>       (only if successful and asker is admin)
+                            "is_admin": <True/False>,       (only if successful and asker is admin)
+                            "access":   [                   (only if successful and asker is admin)
+                                {
+                                    "id": <id of entry>,
+                                    "category": <name of category the user has access to>
+                                },
+                                {
+                                    ...
+                                },
+                                ...
+                            ],
+                            "courses": [    <list of courses the user worked on>
+                                *NOTE: * see _get_courses_worked_on() documentation for more details
+                            ]
                             "message":  <ERROR_message>     (only if not successful)
                         }
         """
@@ -1217,15 +1430,25 @@ class DatabaseHandler:
                 "success": False, "message": "Invalid user id!"
             }
 
-        if self.is_admin(id_asker):
-            uid = user[0]
-            #TODO: FINALIZE IMPLEMENTATION HERE!!!!
+        rights = self.get_user_rights(user_id=id_user)
 
-        return {
-            "success": True,
-            "admin": False,
-            "name": user[2]
-        }
+        if self.is_admin(id_asker):
+            courses = self._get_courses_user_worked_on(user[0])
+            return {
+                "success": True,
+                "admin": True,
+                "name": user[2],
+                "email": user[1],
+                "access": rights["rights"] if rights["success"] else 0,
+                "courses": courses["courses"] if courses["success"] else 0
+            }
+        else:
+            return {
+                "success": True,
+                "admin": False,
+                "name": user[2],
+                "access": rights["rights"] if rights["success"] else 0
+            }
 
     def update_user_name(self, id_updater, id_user, new_name):
         """
@@ -1528,4 +1751,561 @@ class DatabaseHandler:
             except:
                 return False, "Database Failure"
 
+    def update_user_admin_status(self, admin_id, user_id, new_status):
+        """
+
+        :param admin_id:            The admin that performs the update
+        :param user_id:             The user the update is performed for
+        :param new_status:          The new status (has to be either 1/0)
+
+        :return:                    A dictionary with the following format:
+                                    {
+                                        "success":  <True/False>,
+                                        "message":  <ERROR_message> (only if not successful)
+                                    }
+        """
+
+        if admin_id == user_id:
+            return {"success": False, "message": "Can't update your own status!!"}
+
+        if not self.is_admin(admin_id):
+            return {"success": False, "message": "Not enough rights to perform the operation"}
+
+        user = self._get_user_from_hash(user_id)
+
+        if user is None:
+            return {"success": False, "message": "Invalid user ID"}
+
+        if user[4] == new_status:
+            # Not necessary to perform the actual update
+            return {"success": True}
+
+        try:
+            self._execute_UPDATE("users", conds="uid=?", conds_args=[user[0]], cols=["admin"], new_values=[new_status])
+        except:
+            return {"success": False, "message": "Database failure"}
+
+        return {"success": True}
+
+    def add_course_category(self, admin_id, new_category):
+        """
+            Method that adds a course category
+
+        :param admin_id:            The id of the admin performing the action
+        :param new_category:        The name of the new course category
+
+        :return:                    A dictionary of the format:
+
+                                    {
+                                        "success": <True/ False>,
+                                        "message": <ERROR message>  (only if not successful)
+                                    }
+        """
+        if not self.is_admin(admin_id):
+            return {"success": False, "message": "Not enough rights to perform the action"}
+
+        try:
+            self._execute_INSERT("course_categories", ["category_name"], new_category)
+        except:
+            return {"success": False, "message": "Database failure"}
+
+        return {"success": True}
+
+    def remove_course_category(self, admin_id, category_name):
+        """
+            Method that removes a course category from the database.
+            It also archives every log entry that has something to do with that course category.
+            It also
+            *NOTE: *    If a user is working on a course from that category, the DELETE will not happen!!!
+
+        :param admin_id:                The id of the admin performing the action
+        :param category_name:           The name of the category that will be removed
+
+        :return:                        A dictionary with the following format:
+
+                                        {
+                                            "success":  <True/ False>,
+                                            "message":  <ERROR message>     (only if not successful)
+                                        }
+        """
+
+        if self.is_admin(admin_id):
+            return {"success": False, "message": "Not enough rights to perform the action"}
+
+        query = "SELECT w.id " \
+                "FROM working AS w " \
+                    "INNER JOIN courses AS c ON w.cid = c.id " \
+                    "INNER JOIN course_categories AS cc ON c.cid = cc.id " \
+                "WHERE cc.category_name=? " \
+                "LIMIT 1"
+
+        try:
+            result = self._execute_SELECT_from_query(query, category_name)
+        except:
+            return {"success": False, "message": "Database failure"}
+
+        if not len(result) == 0:
+            # Someone is working on a course related to this category
+            return {"success": False, "message": "ERROR: A user is working on a course from that category"}
+
+        # Otherwise, we can just keep on going with this
+
+        archiver_success = self._create_partial_archive(conds="cc.name=?", value=category_name,
+                                                        reason="Removing category from database")
+
+        if not archiver_success:
+            return {"success": False, "message": "ERROR while creating the archive"}
+
+        delete_success = self._delete_logs_based_on_category(category_name)
+
+        if not delete_success:
+            return {"success": False, "message": "ERROR while deleting the logs"}
+
+        delete_query = "DELETE FROM courses " \
+                       "WHERE courses.id IN ( " \
+                            "SELECT c.id " \
+                                "FROM courses AS c " \
+                                "INNER JOIN course_categories AS cc " \
+                                    "ON c.cid = cc.id " \
+                            "WHERE cc.category_name = ?" \ 
+                        ")"
+
+        try:
+            self._execute_query(delete_query, category_name)
+        except:
+            return {"success": False, "message": "Database failure"}
+
+        try:
+            self._execute_DELETE("course_categories", "category_name=?", category_name)
+        except:
+            return {"success": False, "message": "Database failure"}
+
+        return {"success": True}
+
+    def add_course(self, admin_id, new_course):
+        """
+
+        :param admin_id:        The ID of the admin performing the action
+        :param new_course:      The data about the course. It has to be a dictionary with the following format:
+
+                                {
+                                    "name:"     <course_name>,
+                                    "url:"      <course_url>,
+                                    "category": <category_name>
+                                    "description",                          (optional)
+                                    "about",                                (optional)
+                                    "syllabus",                             (optional)
+                                    "notes",                                (optional)
+                                    "weekly_commitment_low",                (optional)
+                                    "weekly_commitment_high"                (optional)
+                                    "number_weeks"                          (optional)
+                                }
+
+        :return:
+                                 A dictionary with the following format:
+
+                                {
+                                    "success": <True/ False>,
+                                    "message": <ERROR message>              (only if not successful)
+                                }
+        """
+
+        if not self.is_admin(admin_id):
+            return {"success": False, "message": "Not enough rights to perform the action"}
+
+        columns = new_course.keys()
+
+        values = [new_course[key] for key in new_course.keys()]
+
+        try:
+            self._execute_INSERT("courses", cols=columns, *values)
+        except:
+            return {"success": False, "message": "Database failure"}
+
+        return {"success": True}
+
+    def remove_course(self, admin_id, course_name):
+        """
+            Method that removes a course from the database
+            *Note1:* this only happens if NO USER IS WORKING ON THAT COURSE
+            *Note2:* it also archives all the logs that were related to that course
+
+        :param admin_id:            The id of the admin performing the action
+        :param course_name:         The name of the course we want to delete
+
+        :return:                    A dictionary with the following format:
+                                    {
+                                        "success": <True/ False>,
+                                        "message": <ERROR message>              (only if not successful)
+                                    }
+        """
+        if not self.is_admin(admin_id):
+            return {"success": False, "message": "Not enough rights to perform the action"}
+
+        try:
+            course = self._execute_SELECT("courses", conds="name=?", args=[course_name])
+        except:
+            return {"success": False, "message": "Database failure"}
+
+        if len(course) == 0:
+            return {"success": False, "message": "Invalid course name"}
+
+        select_query = "SELECT w.id " \
+                            "FROM working AS w " \
+                            "INNER JOIN courses AS c " \
+                                "ON w.cid = c.id " \
+                       "WHERE c.name=?"
+
+        try:
+            result = self._execute_SELECT_from_query(select_query, course_name)
+        except:
+            return {"success": False, "message": "Database failure"}
+
+        if not len(result) == 0:
+            return {"success": False, "message": "ERROR: User working on the course. Can't archive the logs."}
+
+        archive_success = self._create_partial_archive(conds="c.name=?", value=course_name,
+                                                       reason="deleting course from the database")
+
+        if not archive_success:
+            return {"success": False, "message": "ERROR while archiving the entries"}
+
+        try:
+            self._execute_DELETE("logs", "cid=?", course[0])
+        except:
+            return {"success": False, "message": "ERROR while deleting old logs"}
+
+        return {"success": True}
+
+    def edit_course(self, admin_id, course_name, new_details):
+        """
+
+        :param admin_id:                The id of the admin performing the action
+        :param course_name:             The name of the course that is being edited
+        :param new_details:             The new details of the course
+                                        *Note: * Has to be a dictionary with the following format:
+                                        {
+                                            "name:"     <course_name>,
+                                            "url:"      <course_url>,
+                                            "category": <category_name>
+                                            "description",                          (optional)
+                                            "about",                                (optional)
+                                            "syllabus",                             (optional)
+                                            "notes",                                (optional)
+                                            "weekly_commitment_low",                (optional)
+                                            "weekly_commitment_high"                (optional)
+                                            "number_weeks"                          (optional)
+                                        }
+
+        :return:                        A dictionary with the following format:
+                                        {
+                                            "success": <True/ False>,
+                                            "message": <ERROR message>              (only if not successful)
+                                        }
+
+        """
+        if not self.is_admin(admin_id):
+            return {"success": False, "message": "Not enough rights to perform the action"}
+
+        try:
+            course_id = self._execute_SELECT(table="courses", conds="name=?", cols=["id"], args=[course_name])
+        except:
+            return {"success": False, "message": "Database failure"}
+
+        if len(course_id) == 0:
+            return {"success": False, "message": "Invalid course name"}
+
+        cid = course_id[0][0]
+
+        try:
+            self._execute_UPDATE(table="courses",
+                                cols=new_details.keys(),
+                                new_values = [new_details[x] for x in new_details.keys()],
+                                conds="id=?",
+                                conds_args=[cid])
+        except:
+            return {"success": False, "message": "Database failure"}
+
+        return {"success": True}
+
+    def remove_user(self, admin_id, user_id):
+        """
+            Method that removes a user from the database
+            * Note1: * Before physically removing the user, all the logs related to he/ she are logged
+            * Note2: * If the user is currently working, he/ she will NOT be deleted
+            * Note3: * admin_id has to be DIFFERENT from user_id
+
+        :param admin_id:            The id of the admin performing the action
+        :param user_id:             The id of the user we want to remove
+
+        :return:                    A dictionary witht he following format:
+                                    {
+                                        "success": <True/ False>
+                                        "message": <ERROR message>                  (only if not succcessful)
+                                    }
+        """
+        if not self.is_admin(admin_id):
+            return {"success": False, "message": "Not enough rights to perform the action!"}
+
+        if admin_id == user_id:
+            return {"success": False, "message": "Cannot remove yourself from the database"}
+
+        user = self._get_user_from_hash(user_id)
+
+        if user is None:
+            return {"success": False, "message": "Invalid user id!"}
+
+        uid = user[0]
+
+        try:
+            user_working_on = self._execute_SELECT(table="working", conds="uid=?", cols=["id"], limit=1, args=[uid])
+        except:
+            return {"success": False, "message": "Database failure"}
+
+        if not len(user_working_on) == 0:
+            return {"success": False, "message": "User currently working!"}
+
+        archive_success = self._create_partial_archive(conds="u.id=?", value=uid, reason="Removing user from database")
+
+        if not archive_success:
+            return {"success": False, "message": "ERROR while archiving user logs"}
+
+        try:
+            self._execute_DELETE("logs", "uid=?", uid)
+        except:
+            return {"success": False, "message": "ERROR while deleting logs"}
+
+        try:
+            self._execute_DELETE("users", "id=?", uid)
+        except:
+            return {"success": False, "message": "ERROR while deleting user from database"}
+
+        return {"success": True}
+
+    def update_category_name(self, admin_id, old_name, new_name):
+        """
+
+        :param admin_id:            id of the admin performing the action
+        :param old_name:            old name of the category
+        :param new_name:            new name of the category
+
+        :return:                    A dictionary with the following format:
+                                    {
+                                        "success": <True/ False>
+                                        "message": <ERROR message>          (only if not successful)
+                                    }
+        """
+        if not self.is_admin(admin_id):
+            return {"success": False, "message": "Not enough rights to perform the action"}
+
+        try:
+            self._execute_UPDATE(table="course_categories",
+                                 cols=["name"], new_values=[new_name],
+                                 conds="name=?", conds_args=[old_name])
+        except:
+            return {"success": False, "message": "Database failure"}
+
+        return {"success": True}
+
+    def archive_logs(self, admin_id):
+        """
+            Method that archives all the logs from the live database
+
+            *Note: *    It also deletes the logs from the live database
+
+        :param admin_id:            id of the admin performing the action
+
+        :return:                    A dictionary of the following format:
+                                    {
+                                        "success": <True/ False>
+                                        "message": <ERROR message>      (only if not successful)
+                                    }
+        """
+        if not self.is_admin(admin_id):
+            return {"success": False, "message": "Not enough rights to perform the action"}
+
+        select_query = "SELECT u.name, u.email, c.name, c.url, c.description, cc.category_name, l.duration, " \
+                                "l.started_at, l.logged_at " \
+                            "FROM logs AS l " \
+                            "INNER JOIN courses AS c " \
+                                "ON l.cid = c.id " \
+                            "INNER JOIN course_categories AS cc " \
+                                "ON c.cid = cc.id " \
+                            "INNER JOIN users AS u " \
+                                "ON u.id = l.uid;"
+
+        try:
+            partial_data = self._execute_SELECT_from_query(select_query)
+        except:
+            return {"success": False, "message": "Database failure"}
+
+        archive_success = self._insert_into_archive(partial_data, "Archiving done by admin")
+
+        if not archive_success:
+            return {"success": False, "message": "ERROR while inserting data into archive"}
+
+        try:
+            self._execute_DELETE(table="logs", conds="1=1")
+        except:
+            return {"success": False, "message": "ERROR while deleting the logs"}
+
+        return {"success": True}
+
+    def get_logged_in_users(self, admin_id):
+        """
+
+        :param admin_id:            The id of the admin performing the action
+
+        :return:                    A dictionary with the following format:
+                                    {
+                                        "success": <True/ False>,
+                                        "users": [                                          (only if successful)
+                                            {
+                                                "id":  <id of the list entry>,
+                                                "name": <name of the user who's logged in>,
+                                                "email": <email of the user>
+                                                "logged_at:" <date when the user logged in last time>,
+                                                "expiry_date": <date when the login token expires>,
+                                                "mailto_link": <link for enabling the email to the user>,
+                                                "logout_function": <logout function for the logout button>,
+                                                "user_details_function": <JS function to get more information about the user>
+                                            },
+                                            {
+                                                ....
+                                            }
+                                            ...
+                                        ],
+                                        "message": <ERROR message>                          (only if not successful)
+                                    }
+        """
+        if not self.is_admin(admin_id):
+            return {"success": False, "message": "Not enough rights to perform the action"}
+
+        query = "SELECT u.name, u.email, li.last_login, li.TTL " \
+                    "FROM users AS u " \
+                    "INNER JOIN logged_in AS li " \
+                        "ON u.id = li.uid;" \
+
+        try:
+            logged_in_users = self._execute_SELECT_from_query(query)
+        except:
+            return {"success": False, "message": "Database failure"}
+
+        result = {
+            "success": True,
+            "users": list()
+        }
+        id = 1
+
+        for user in logged_in_users:
+            new_entry = {
+                "id": id,
+                "name": user[0],
+                "email": user[1],
+                "logged_at": user[2],
+                "expiry_date": str(dt_parse.parse(user[2]) + datetime.timedelta(seconds=user[3])),
+                "mailto_link": "mailto:" + user[1],
+                "logout_function": "forced_logout('" + self._get_sha256_encryption(user[1]) + "')",
+                "user_details_function": "get_user_details('user', '" + self._get_sha256_encryption(user[1]) + "')"
+            }
+            result["users"].append(new_entry)
+            id += 1
+
+        return result
+
+    def get_categories_list(self, admin_id):
+        """
+
+        :param admin_id:        id of the admin trying to perform the action
+        :return:                A dictionary with the following form:
+                                {
+                                    "success":  <True/ False>,
+                                    "categories": [                                 (only if successful)
+                                        {
+                                            "id": <id of the list entry>,
+                                            "category_name": <name of the new category>
+                                        }
+                                    ],
+                                    "message": <ERROR message>                      (only if not successful)
+                                }
+        """
+        if not self.is_admin(admin_id):
+            return {"success": False, "message": "Not enough rights to get the course categories"}
+
+        try:
+            categories = self._execute_SELECT(table="course_categories", conds=None, cols=["category_name"])
+        except:
+            return {"success": False, "message": "Database failure"}
+
+        result = {
+            "success": True,
+            "categories": list()
+        }
+        id = 1
+
+        for category in categories:
+            new_entry = {
+                "id": id,
+                "category_name": category[0]
+            }
+            result["categories"].append(new_entry)
+            id += 1
+
+        return result
+
+    def get_full_users_list(self, admin_id):
+        """
+            Method that gets the full list of users from the database
+
+        :param admin_id:        The id of the admin asking for the list
+
+        :return:                A dictionary of the following format:
+
+                                {
+                                    "success":  <True/ False>,
+                                    "users": [                                          (only if successful)
+                                        {
+                                            "id": <id of the entry in the list>,
+                                            "name": <user's name>,
+                                            "email": <user's email>,
+                                            "admin": <Yes/ No> (whether the user is an admin or not)
+                                            "mailto_link": <link to enable mailto functionality>,
+                                            "more_details_function": <JS function called to get more details on the user>
+                                        }
+                                        {
+                                            ...
+                                        }
+                                        ...
+                                    ],
+                                    "message": <ERROR message>                          (only if not successful)
+                                }
+        """
+
+        if not self.is_admin(admin_id):
+            return {"success": False, "message": "Not enough rights to perform this action"}
+
+        try:
+            users = self._execute_SELECT(table="users", conds=None)
+        except:
+            return {"success": False, "message": "Database failure"}
+
+        id = 1
+        result = {
+            "success":  True,
+            "users": list()
+        }
+
+        for user in users:
+            new_entry = {
+                "id": id,
+                "name": user[2],
+                "email": user[1],
+                "mailto_link": "mailto:" + user[1],
+                "more_details_function": "get_user_details('" + self._get_sha256_encryption(user[1]) + "')",
+                "admin": "Yes" if user[-1] == 1 else "No"
+            }
+            id += 1
+            result["users"].append(new_entry)
+
+        return result
 

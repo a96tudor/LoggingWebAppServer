@@ -4,6 +4,7 @@
     Courses
 </h1>
 
+<p> Filter courses: </p>
 <input type="text" id="filter-input" placeholder="Enter keyword here..." onkeydown="filterTableContents()" title="Keyword">
 
 <table id="table-contents">
@@ -15,6 +16,7 @@
         <th>Time Required(weeks)</th>
         <th>About</th>
         <th>Syllabus</th>
+          <th> Course Rating</th>
         <th> </th>
       </tr>
     </thead>
@@ -53,6 +55,45 @@
                     {{item["syllabus"]}}
                 {% else %}
                     N/A
+                {% endif %}
+            </td>
+            <td>
+                {% if item["rating"] and item["rating"]["success"]%}
+                    {% if item["worked_on"] %}
+                        <div class="rating">
+                    {% else %}
+                        <div class="rating-fixed">
+                    {% endif %}
+                            {% if item["rating"]["floored-rating"] > 0 %}
+                                <span class="yellow-star">☆</span>
+                            {% else %}
+                                <span>☆</span>
+                            {% endif %}
+                            {% if item["rating"]["floored-rating"] > 1 %}
+                                <span class="yellow-star">☆</span>
+                            {% else %}
+                                <span>☆</span>
+                            {% endif %}
+                            {% if item["rating"]["floored-rating"] > 2 %}
+                                <span class="yellow-star">☆</span>
+                            {% else %}
+                                <span>☆</span>
+                            {% endif %}
+                            {% if item["rating"]["floored-rating"] > 3 %}
+                                <span class="yellow-star">☆</span>
+                            {% else %}
+                                <span>☆</span>
+                            {% endif %}
+                            {% if item["rating"]["floored-rating"] > 4 %}
+                                <span class="yellow-star">☆</span>
+                            {% else %}
+                                <span>☆</span>
+                            {% endif %}
+                        </div>
+                {% else %}
+                    <div class="rating">
+                        <span>☆</span><span>☆</span><span>☆</span><span>☆</span><span>☆</span>
+                    </div>
                 {% endif %}
             </td>
             <td>

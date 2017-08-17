@@ -6,31 +6,68 @@
         <h1 class="sub-title"> General Information  </h1>
         <hr>
 
-        {% if data["name"] %}
+
             <div class="edit-container">
-                <div class="inline">
-                    <p class="info">Name: </p>
-                </div>
 
-                <div class="inline">
+                <!-- NAME INFO -->
 
-                    <p id="nameP" class="name info"> {{data["name"]}} </p>
-                    <input id="text-name-edit" class="edit-input" type="text" value="{{data['name']}}">
+                {% if data["name"] %}
+                    <div class="inline">
+                        <p class="info">Name: </p>
+                    </div>
 
-                </div>
+                    <div class="inline">
 
-                <div class="inline">
-                    <i id="edit-icon-name" class="material-icons" onclick="toggleDisplayHide(['text-name-edit', 'button-name-edit'],
+                        <p id="nameP" class="name info"> {{data["name"]}} </p>
+                        <input id="text-name-edit" class="edit-input" type="text" value="{{data['name']}}">
+
+                    </div>
+
+                    <div class="inline">
+                        <i id="edit-icon-name" class="material-icons" onclick="toggleDisplayHide(['text-name-edit', 'button-name-edit'],
                                       ['nameP', 'edit-icon-name'])">mode_edit</i>
-                    <input id="button-name-edit" class="edit-input" type="button" value="Done!"
-                        onclick="updateName();">
-                </div>
+
+                        <input id="button-name-edit" class="edit-input" type="button" value="Done!"
+                            onclick="updateName();">
+
+                        <input id="button-cancel-name-edit" class="cancel-button" type="button" value="Cancel!"
+                               onclick="toggleDisplayHide(['nameP', 'edit-icon-name'],
+                                                   ['text-name-edit', 'button-name-edit'])">
+                    </div>
+                {% else %}
+                    <h1 class="error-message">
+                        Name resource unavailable for the moment.
+                    </h1>
+                {% endif %}
+
+                {% if data["admin"] %}
+
+                <!-- EMAIL INFO -->
+                    {% if data["email"] %}
+                        <div class="inline">
+                            <p class="info"> Email: </p>
+                        </div>
+
+                        <div class="inline">
+                            {% if data["mailto_link"] %}
+                                <a id="email" class="email-info" href={{data["mailto_link"]}}>
+                                    {{data["email"]}}
+                                </a>
+                            {% else %}
+                                <p id="email" class="email-info"> {{data["email"}} </p>
+                            {% endif %}
+
+                        </div>
+                    {% else %}
+                        <h1 class="error-message">
+                            Email resource unavailable for the moment.
+                        </h1>
+                    {% endif %}
+
+                {% endif %}
+
             </div>
-        {% else %}
-            <h1 class="error-message">
-                Resource unavailable for the moment. Please contact an administrator
-            </h1>
-        {% endif %}
+
 
         <h1 class="sub-title"> Security </h1>
         <hr>

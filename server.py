@@ -17,6 +17,17 @@ def dictionary_has_cols(cols, dictionary):
     return True
 
 
+def _execute_login(data, function):
+    if "email" in data and "password" in data:
+        if isinstance(data["email"], str) and isinstance(data["password"], str):
+            result = function(data["email"], data["password"])
+            return jsonify(result)
+        else:
+            return Response(status=400, response="Incorrect format")
+    else:
+        return Response(status=400, response="Incorrect format")
+
+
 @app.route("/user-validate", methods=["POST", "OPTIONS"])
 @cross_origin()
 def validate_user():
@@ -210,15 +221,7 @@ def login():
     start = time()
     if request.is_json:
         data = request.json
-        if "email" in data and "password" in data:
-            if isinstance(data["email"], str) and isinstance(data["password"], str):
-                result = dh.verify_user(data["email"], data["password"])
-                times.append({"path": "/user/login", "time": time() - start})
-                return jsonify(result)
-            else:
-                return Response(status=400, response="Incorrect format")
-        else:
-            return Response(status=400, response="Incorrect format")
+        return _execute_login(data, dh.user_login)
     else:
         return Response(status=400, response="Incorrect format")
 
@@ -296,7 +299,7 @@ def check_session():
 @cross_origin()
 def working_users():
 
-    return jsonify(dh.get_working_users())
+    return jsonify(dh.get_working_users)
 
 
 @app.route("/logs", methods=["GET", "OPTIONS"])
@@ -492,8 +495,11 @@ def update_time():
 def courses():
     global times
 
+    #TODO: UPDATE THE WAY THE REQUEST IS MADE!!!!!!
+    uid = "ecc6b34288d5c96494cd84efa927ab27023b22d59b6c4b6c412b1c9a5515e720"
+
     start = time()
-    data = dh.get_courses_list_with_details()
+    data = dh.get_courses_list_with_details(uid)
     times.append({"path": "/courses", "time": time() - start})
     return render_template("html/courses.html", data=data["courses"])
 
@@ -640,6 +646,7 @@ def display_stats():
     }
 
     return jsonify(result)
+
 
 if __name__ == "__main__":
     try:

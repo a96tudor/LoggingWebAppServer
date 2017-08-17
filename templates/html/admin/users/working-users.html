@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+{% if data %}
+    {% if data["success"] %}
+        {% if data["users"]|length %}
+            <div class="table-wrapper">
+                <table>
+                    <tr>
+                        <th>
+                            No.
+                        </th>
+                        <th>
+                            Name
+                        </th>
+                        <th>
+                            Email
+                        </th>
+                        <th>
+                            Working on
+                        </th>
+                        <th>
+                            Started working
+                        </th>
+                        <th>
+                            Worked for
+                        </th>
+                        <th>
+
+                        </th>
+                    </tr>
+                    {% for user in data["users"] %}
+                        <tr>
+                            <td>
+                                {{user["id"]}}
+                            </td>
+                            <td>
+                                {% if user["name"] %}
+                                    {% if user["user_details_function"] %}
+                                        <a onclick={{user["user_details_function"]}} > {{user["name"]}} </a>
+                                    {% else %}
+                                        {{user["name"]}}
+                                    {% endif %}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user["email"] %}
+                                    {% if user["mailto_link"] %}
+                                        <a href={{user["mailto_link"]}}> {{user["email"]}} </a>
+                                    {% else %}
+                                        {{user["email]}}
+                                    {% endif %}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user["course"] %}
+                                    {% if user["course_details_function"] %}
+                                        <a href={{user["course_details_function"]}}> {{user["course"]}}</a>
+                                    {% else %}
+                                        {{user["course"]}}
+                                    {% endif %}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user["since"] %}
+                                    {{user["since"]}}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user["worked_for"] %}
+                                    {{user["worked_for"]}}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user["stop_work_function"] %}
+                                    <input type="button" class="stop-now" value="Force Stop Work!"
+                                           onclick={{user["stop_work_function"]}}>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        {% else %}
+            <h1 class="sub-title" >
+                No users working at the moment
+            </h1>
+    {% else %}
+        {{data["message"]}}
+    {% endif %}
+{% else %}
+    <h1 class="error-message">
+        Resource unavailable for the moment
+    </h1>
+{% endif %}

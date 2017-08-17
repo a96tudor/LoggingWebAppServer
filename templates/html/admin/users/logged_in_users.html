@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+{% if data %}
+    {% if data["success"] %}
+        {% if data["users"]|length %}
+            <div class="table-wrapper">
+                <table>
+                    <tr>
+                        <th> No. </th>
+                        <th> Name </th>
+                        <th> Email </th>
+                        <th> Logged in at </th>
+                        <th> Login valid until </th>
+                        <th> </th>
+                    </tr>
+                    {% for user in data["users"] %}
+                        <tr>
+                            <td>
+                                {{user["id"]}}
+                            </td>
+                            <td>
+                                {% if user["name"] %}
+                                    {% if user["user_details_function"] %}
+                                        <a onclick={{user["user_details_function"]}} > {{user[name]}} </a>
+                                    {% else %}
+                                        {{user["name"]}}
+                                    {% endif %}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user["email"] %}
+                                    {% if user["mailto_link"] %}
+                                        <a href={{user["mailto_link"]}}> {{user["email"]}} </a>
+                                    {% else %}
+                                        {{user["email"]}}
+                                    {% endif %}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user["logged_at"] %}
+                                    {{user["logged_at"]}}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user["expiry_date"] %}
+                                    {{user["expiry_date"]}}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user["logout_function"] %}
+                                    <input type="button" class="logout-button" value="Forced Logout"
+                                           onclick={{user["logout_function"]}} >
+                                {% else %}
+                                    Logout function not available
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        {% else %}
+            <h1 class="sub-title">
+                No logged in users at the moment
+            </h1>
+        {% endif %}
+    {% else %}
+         <p class="error-message"> {{data["message"]}} </p>
+    {% endif %}
+{% else %}
+    <p class="error-message">     Resource unavailable for the moment </p>
+{% endif %}
