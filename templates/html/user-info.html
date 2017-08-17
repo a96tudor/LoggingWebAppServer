@@ -30,7 +30,7 @@
                         <input id="button-name-edit" class="edit-input" type="button" value="Done!"
                             onclick="updateName();">
 
-                        <input id="button-cancel-name-edit" class="cancel-button" type="button" value="Cancel!"
+                        <input id="button-cancel-name-edit" class="cancel-button edit-input" type="button" value="Cancel!"
                                onclick="toggleDisplayHide(['nameP', 'edit-icon-name'],
                                                    ['text-name-edit', 'button-name-edit'])">
                     </div>
@@ -39,7 +39,7 @@
                         Name resource unavailable for the moment.
                     </h1>
                 {% endif %}
-
+                <br/>
                 {% if data["admin"] %}
 
                 <!-- EMAIL INFO -->
