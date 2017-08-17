@@ -1249,7 +1249,7 @@ class DatabaseHandler:
         id = 1
 
         for course in courses:
-            result["courses"].append( {
+            new_entry = {
                     "id": id,
                     "name": course[0],
                     "url": course[1],
@@ -1264,7 +1264,7 @@ class DatabaseHandler:
                     "rating": self._get_rating_average_for_course(course[9]),
                     "worked_on": self._did_user_work_on_course(uid, course[9])
                 }
-            )
+            result["courses"].append(new_entry)
             id += 1
         print(result)
         return result
