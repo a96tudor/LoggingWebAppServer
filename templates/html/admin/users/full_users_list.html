@@ -3,6 +3,7 @@
     {% if data["success"] %}
         {% if data["users"]|length %}
             <div class="table-wrapper">
+                <table>
                 <thead>
                 <tr>
                     <th>
@@ -64,6 +65,7 @@
                     </tr>
                 {% endfor%}
                 </tbody>
+                </table>
             </div>
         {% else %}
             <h1 class="sub-title">
