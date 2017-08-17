@@ -501,7 +501,6 @@ def courses():
     start = time()
     data = dh.get_courses_list_with_details(uid)
     times.append({"path": "/courses", "time": time() - start})
-    print(data["courses"])
     return render_template("html/courses.html", data=data["courses"])
 
 
