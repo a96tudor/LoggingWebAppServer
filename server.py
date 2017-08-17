@@ -667,10 +667,8 @@ def get_users_list():
 @app.route("/admin/working-users", methods=["GET", "OPTIONS"])
 @cross_origin()
 def get_working_users():
-    admin_id = request.args.get("id")
-    data = dh.get_working_users(admin_id)
+    data = dh.get_working_users()
     return render_template("html/admin/users/working-users.html", data=data)
-
 
 
 if __name__ == "__main__":

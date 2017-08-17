@@ -2180,10 +2180,9 @@ class DatabaseHandler:
                     "INNER JOIN logged_in AS li " \
                         "ON u.id = li.uid;" \
 
-        try:
-            logged_in_users = self._execute_SELECT_from_query(query)
-        except:
-            return {"success": False, "message": "Database failure"}
+
+        logged_in_users = self._execute_SELECT_from_query(query)
+
 
         result = {
             "success": True,
