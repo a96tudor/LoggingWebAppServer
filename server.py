@@ -653,7 +653,7 @@ def display_stats():
 def get_logged_in():
     admin_id = request.args.get("id")
     data = dh.get_logged_in_users(admin_id)
-    return render_template("html/admin/users/logged-in-users.html", data=data)
+    return render_template("html/admin/users/logged_in_users.html", data=data)
 
 
 @app.route("/admin/users-list", methods=["GET", "OPTIONS"])
@@ -661,7 +661,7 @@ def get_logged_in():
 def get_users_list():
     admin_id = request.args.get("id")
     data = dh.get_full_users_list(admin_id)
-    return render_template("html/admin/users/full_users_list", data=data)
+    return render_template("html/admin/users/full_users_list.html", data=data)
 
 
 @app.route("/admin/working-users", methods=["GET", "OPTIONS"])
@@ -669,7 +669,7 @@ def get_users_list():
 def get_working_users():
     admin_id = request.args.get("id")
     data = dh.get_working_users(admin_id)
-    return render_template("html/admin/users/full_users_list", data=data)
+    return render_template("html/admin/users/working-users.html", data=data)
 
 
 
