@@ -1261,8 +1261,8 @@ class DatabaseHandler:
                     "weeks": course[7],
                     "category": course[8],
                     "function": "start_work('" + course[0] + "','" + course[1] + "');",
-                    "rating": self._get_rating_average_for_course(course[9]),
-                    "worked_on": self._did_user_work_on_course(uid, course[9])
+                    "rating": 0,
+                    "worked_on": False
                 }
             result["courses"].append(new_entry)
             id += 1
