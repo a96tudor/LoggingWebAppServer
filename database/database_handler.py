@@ -2175,7 +2175,7 @@ class DatabaseHandler:
         if not self.is_admin(admin_id):
             return {"success": False, "message": "Not enough rights to perform the action"}
 
-        query = "SELECT u.name, u.email, li.last_login, li.TTL " \
+        query = "SELECT u.full_name, u.email, li.last_login, li.TTL " \
                     "FROM users AS u " \
                     "INNER JOIN logged_in AS li " \
                         "ON u.id = li.uid;" \
