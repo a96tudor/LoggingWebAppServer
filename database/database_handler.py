@@ -596,7 +596,7 @@ class DatabaseHandler:
                     "name": <user's_name>        (only if successful)
                     "token": <login_token>,      (only if successful)
                     "ttl":   <TTL>,              (only if successful),
-                    "is_admin": <wether the user loggin in is an admin or not>      (only if successful)
+                    "is_admin": <whether the user logging in is an admin or not>      (only if successful)
                     "message":  <error_message>  (if necessary)
                 }
         """
@@ -607,13 +607,9 @@ class DatabaseHandler:
                 "message": "Incorrect username or password"
             }
 
-        try:
-            user = self._execute_SELECT("users", conds="email=?", args=[email])
-        except:
-            return {
-                "success":  False,
-                "message": "Server error"
-            }
+
+        user = self._execute_SELECT("users", conds="email=?", args=[email])
+
 
         if user is not None and len(user) != 0:
             user = user[0]
