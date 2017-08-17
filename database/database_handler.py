@@ -147,7 +147,7 @@ class DatabaseHandler:
         print(query, conds)
         con = sql.connect(self._dbName)
         cur = con.cursor()
-        cur.execute(query, *args)
+        cur.execute(query, args)
         results = list(set(cur.fetchall()))
         con.commit()
         con.close()
