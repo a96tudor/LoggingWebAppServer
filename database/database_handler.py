@@ -1867,8 +1867,7 @@ class DatabaseHandler:
                                 "FROM courses AS c " \
                                 "INNER JOIN course_categories AS cc " \
                                     "ON c.cid = cc.id " \
-                            "WHERE cc.category_name = ?" \ 
-                        ")"
+                            "WHERE cc.category_name = ?)"
 
         try:
             self._execute_query(delete_query, category_name)
