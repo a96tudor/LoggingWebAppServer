@@ -410,7 +410,7 @@ class DatabaseHandler:
                             "message": <ERROR message>                      (only if not successful)
                         }
         """
-        query = "SELECT c.name, c.link, SUM(l.duration), " \
+        query = "SELECT c.name, c.url, SUM(l.duration), " \
                         "(CASE r.rating " \
                             "WHEN r.rating IS NOT NULL THEN r.rating " \
                             "ELSE 0 " \
