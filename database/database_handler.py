@@ -1465,7 +1465,6 @@ class DatabaseHandler:
 
         raw_rights = self.get_user_rights(user_id=id_user)
         rights = [x["category_name"] for x in raw_rights["rights"]] if raw_rights["success"] else None
-        print(raw_rights)
         categories = self._get_categories_list()
 
         if self.is_admin(id_asker):
@@ -1475,7 +1474,7 @@ class DatabaseHandler:
                 "admin": True,
                 "name": user[2],
                 "email": user[1],
-                "access": [{"id": "cb" + str(x["id"]), "name": x["category_name"], "has_access": x in rights}
+                "access": [{"id": "cb" + str(x["id"]), "name": x["category_name"], "has_access": x["name"] in rights}
                                     for x in categories["categories"]] if categories["success"] else None,
                 "courses": courses["courses"] if courses["success"] else 0
             }
