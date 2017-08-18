@@ -21,7 +21,7 @@
                             <td>
                                 {% if user["name"] %}
                                     {% if user["user_details_function"] %}
-                                        <a onclick={{user["user_details_function"]}} > {{user["name"]}} </a>
+                                        <p onclick={{user["user_details_function"]}} > {{user["name"]}} </p>
                                     {% else %}
                                         {{user["name"]}}
                                     {% endif %}
