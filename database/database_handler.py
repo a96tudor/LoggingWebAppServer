@@ -413,10 +413,12 @@ class DatabaseHandler:
         query = "SELECT c.name, c.link, SUM(l.duration), " \
                         "(CASE r.rating " \
                             "WHEN r.rating IS NOT NULL THEN r.rating " \
-                            "ELSE 0), " \
+                            "ELSE 0 " \
+                            "END ), " \
                         "(CASE r.rated_at " \
                             "WHEN r.rated_at IS NOT NULL THEN r.rated_at " \
-                            "ELSE '-') " \
+                            "ELSE '-' " \
+                        "END) " \
                     "FROM logs AS l " \
                     "INNER JOIN users AS u " \
                         "ON u.id = l.uid " \
