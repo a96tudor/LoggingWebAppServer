@@ -1463,12 +1463,15 @@ class DatabaseHandler:
                 "success": False, "message": "Invalid user id!"
             }
 
-        raw_rights = self.get_user_rights(user_id=id_user)
-        rights = [x["category_name"] for x in raw_rights["rights"]] if raw_rights["success"] else None
-        categories = self._get_categories_list()
+
 
         if self.is_admin(id_asker):
+            raw_rights = self.get_user_rights(user_id=id_user)
+            rights = [x["category_name"] for x in raw_rights["rights"]] if raw_rights["success"] else None
+            categories = self._get_categories_list()
             courses = self._get_courses_user_worked_on(user[0])
+            print(courses)
+
             return {
                 "success": True,
                 "admin": True,
