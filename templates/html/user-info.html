@@ -1,7 +1,12 @@
 {% if data %}
     {% if data["success"] %}
 
-        <h1 class="title"> Account Information </h1>
+        <h1 class="title">
+            Account Information
+            {% if data["admin"] %}
+                - {{data["name"]}}
+            {% endif %}
+        </h1>
 
         <h1 class="sub-title"> General Information  </h1>
         <hr>
@@ -12,27 +17,29 @@
                 <!-- NAME INFO -->
 
                 {% if data["name"] %}
-                    <div class="inline">
-                        <p class="info">Name: </p>
-                    </div>
+                    <div id="name-container">
+                        <div class="inline">
+                            <p class="info">Name: </p>
+                        </div>
 
-                    <div class="inline">
+                        <div class="inline">
 
-                        <p id="nameP" class="name info"> {{data["name"]}} </p>
-                        <input id="text-name-edit" class="edit-input" type="text" value="{{data['name']}}">
+                            <p id="nameP" class="name info"> {{data["name"]}} </p>
+                            <input id="text-name-edit" class="edit-input" type="text" value="{{data['name']}}">
 
-                    </div>
+                        </div>
 
-                    <div class="inline">
-                        <i id="edit-icon-name" class="material-icons" onclick="toggleDisplayHide(['text-name-edit', 'button-name-edit'],
-                                      ['nameP', 'edit-icon-name'])">mode_edit</i>
+                        <div class="inline">
+                            <i id="edit-icon-name" class="material-icons" onclick="toggleDisplayHide(['text-name-edit','button-cancel-name-edit',
+                                        'button-name-edit'], ['nameP', 'edit-icon-name'])">mode_edit</i>
 
-                        <input id="button-name-edit" class="edit-input" type="button" value="Done!"
-                            onclick="updateName();">
+                            <input id="button-name-edit" class="edit-input" type="button" value="Done!"
+                                    onclick="updateName();">
 
-                        <input id="button-cancel-name-edit" class="cancel-button edit-input" type="button" value="Cancel!"
-                               onclick="toggleDisplayHide(['nameP', 'edit-icon-name'],
+                            <input id="button-cancel-name-edit" class="cancel-button edit-input" type="button" value="Cancel!"
+                                    onclick="toggleDisplayHide(['nameP', 'edit-icon-name'],
                                                    ['text-name-edit', 'button-name-edit'])">
+                        xw</div>
                     </div>
                 {% else %}
                     <h1 class="error-message">
@@ -44,19 +51,36 @@
 
                 <!-- EMAIL INFO -->
                     {% if data["email"] %}
-                        <div class="inline">
-                            <p class="info"> Email: </p>
-                        </div>
+                        <div id="email-container">
+                            <div class="inline">
+                                <p class="info"> Email: </p>
+                            </div>
 
-                        <div class="inline">
-                            {% if data["mailto_link"] %}
-                                <a id="email" class="email-info" href={{data["mailto_link"]}}>
-                                    {{data["email"]}}
-                                </a>
-                            {% else %}
-                                <p id="email" class="email-info"> {{data["email"]}} </p>
-                            {% endif %}
+                            <div class="inline">
+                                {% if data["mailto_link"] %}
+                                    <a id="email" class="email-info" href={{data["mailto_link"]}}>
+                                        {{data["email"]}}
+                                    </a>
+                                {% else %}
+                                    <p id="email" class="email-info"> {{data["email"]}} </p>
+                                {% endif %}
 
+                                <input id="text-name-edit" class="edit-input" type="text" value="{{data['email']}}">
+
+
+                            </div>
+
+                            <div class="inline">
+                                <i id="edit-icon-email" class="material-icons" onclick="toggleDisplayHide(['text-email-edit','button-cancel-email-edit',
+                                        'button-email-edit'], ['email', 'edit-icon-email'])">mode_edit</i>
+
+                                <input id="button-email-edit" class="edit-input" type="button" value="Done!"
+                                        onclick="updateEmail();">
+
+                                <input id="button-cancel-email-edit" class="cancel-button edit-input" type="button" value="Cancel!"
+                                       onclick="toggleDisplayHide(['email', 'edit-icon-email'],
+                                                   ['text-email-edit', 'button-email-edit'])">
+                            </div>
                         </div>
                     {% else %}
                         <h1 class="error-message">
