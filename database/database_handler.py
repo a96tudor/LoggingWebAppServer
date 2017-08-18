@@ -427,10 +427,8 @@ class DatabaseHandler:
                 "WHERE u.id=? " \
                 "GROUP BY c.id;"
 
-        try:
-            courses = self._execute_SELECT_from_query(query, uid)
-        except:
-            return {"success": False, "message": "Database failure"}
+
+        courses = self._execute_SELECT_from_query(query, uid)
 
         result = {
             "success": True,
