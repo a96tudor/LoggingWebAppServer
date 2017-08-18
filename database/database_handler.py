@@ -1475,7 +1475,7 @@ class DatabaseHandler:
                 "admin": True,
                 "name": user[2],
                 "email": user[1],
-                "access": [{"id": "cb" + str(x["id"]), "category": x["category_name"], "has_access": x in rights}
+                "access": [{"id": "cb" + str(x["id"]), "name": x["category_name"], "has_access": x in rights}
                                     for x in categories["categories"]] if categories["success"] else None,
                 "courses": courses["courses"] if courses["success"] else 0
             }
