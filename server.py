@@ -671,6 +671,18 @@ def get_working_users():
     return render_template("html/admin/users/working-users.html", data=data)
 
 
+@app.route("/admin/new-user", methods=["GET, OPTIONS"])
+@cross_origin()
+def get_new_user_template()
+
+    id = request.args.get("id")
+    if not dh.is_admin(id):
+        return Response(status=400, response="Access not allowed")
+    data = dh.get_categories_list()
+    data_for_template = [{"id": "cb" + str(x["id"]), "name": x["category_name"]} for x in data["categories"]]
+
+    return render_template("html/admin/users/new_user.html", data=data_for_template)
+
 if __name__ == "__main__":
     try:
         app.run(port=5000, debug=True)

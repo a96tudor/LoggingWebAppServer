@@ -1,0 +1,56 @@
+<h1 class="title"> Add New User </h1>
+
+{% if data and data["categories"] %}
+    <div id="name-container">
+        <div class="inline">
+            <p class="info"> Name: </p>
+            </div>
+        <div class="inline">
+            <input type="text" placeholder="Enter user's name here!" id="name-input">
+        </div>
+    </div>
+
+    <br/>
+
+    <div id="email-container">
+        <div class="inline">
+            <p class="info"> Name: </p>
+        </div>
+        <div class="inline">
+            <input type="text" placeholder="Enter user's email here!" id="email-input">
+        </div>
+    </div>
+
+    <br/>
+
+    <div id="rights-container">
+        <fieldset class="group">
+            <legend> Set user rights </legend>
+
+            <ul class="checklist">
+                {% for category in data["categories"] %}
+                <li>
+                    <input id={{category["id"]}} type="checkbox" value={{category["name"]}} checked>
+                    <label for={{category["id"]}}> {{category["name"]}}</label>
+                </li>
+                {% endfor %}
+            </ul>
+        </fieldset>
+    </div>
+
+    <br/>
+
+    <div id="admin-container">
+        <input id="is_admin" type="checkbox" value="Is Admin?">
+        <label for="is_admin"> Is Admin? </label>
+    </div>
+
+    <br />
+
+    <input id="submit" type="button" value="Add User">
+
+{% else %}
+    <h1 class="error-message">
+        ERROR: Server couldn't load categories
+    </h1>
+{% endif %}

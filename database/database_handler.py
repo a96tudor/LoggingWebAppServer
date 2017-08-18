@@ -452,7 +452,7 @@ class DatabaseHandler:
 
         return result
 
-    def _get_categories_list(self):
+    def get_categories_list(self):
         """
 
         :return:                A dictionary with the following form:
@@ -1468,7 +1468,7 @@ class DatabaseHandler:
         if self.is_admin(id_asker):
             raw_rights = self.get_user_rights(user_id=id_user)
             rights = [x["category_name"] for x in raw_rights["rights"]] if raw_rights["success"] else None
-            categories = self._get_categories_list()
+            categories = self.get_categories_list()
             courses = self._get_courses_user_worked_on(user[0])
             print(courses)
 
@@ -2305,4 +2305,3 @@ class DatabaseHandler:
             result["users"].append(new_entry)
 
         return result
-
