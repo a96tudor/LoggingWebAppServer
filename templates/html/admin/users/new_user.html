@@ -1,7 +1,7 @@
 <h1 class="title"> Add New User </h1>
 
 {% if data and data|length %}
-    <div id="name-container">
+    <div id="name-container" class="info">
         <div class="inline">
             <p class="info"> Name: </p>
             </div>
@@ -12,7 +12,7 @@
 
     <br/>
 
-    <div id="email-container">
+    <div id="email-container" class="info">
         <div class="inline">
             <p class="info"> Email: </p>
         </div>
@@ -23,7 +23,7 @@
 
     <br/>
 
-    <div id="rights-container">
+    <div id="rights-container" class="info">
         <fieldset class="group">
             <legend> Set user rights </legend>
 
@@ -40,7 +40,7 @@
 
     <br/>
 
-    <div id="admin-container">
+    <div id="admin-container" class="info">
         <input id="is_admin" type="checkbox" value="Is Admin?">
         <label for="is_admin"> Is Admin? </label>
     </div>
