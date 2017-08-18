@@ -14,7 +14,7 @@
 
     <div id="email-container">
         <div class="inline">
-            <p class="info"> Name: </p>
+            <p class="info"> Email: </p>
         </div>
         <div class="inline">
             <input type="text" placeholder="Enter user's email here!" id="email-input">
@@ -28,7 +28,7 @@
             <legend> Set user rights </legend>
 
             <ul class="checklist">
-                {% for category in data["categories"] %}
+                {% for category in data %}
                 <li>
                     <input id={{category["id"]}} type="checkbox" value={{category["name"]}} checked>
                     <label for={{category["id"]}}> {{category["name"]}}</label>
