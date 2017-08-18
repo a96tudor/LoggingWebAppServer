@@ -1716,7 +1716,7 @@ class DatabaseHandler:
         query = "SELECT c.id, c.category_name " \
                 "FROM rights AS r " \
                     "INNER JOIN course_categories AS c " \
-                "ON r.cid=c.cid " \
+                "ON r.cid=c.id " \
                 "WHERE r.uid=?"
 
         try:
