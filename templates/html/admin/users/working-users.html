@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 {% if data %}
     {% if data["success"] %}
+        <h1 class="title">Working Users</h1>
         {% if data["users"]|length %}
             <div class="table-wrapper">
                 <table>

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 {% if data %}
     {% if data["success"] %}
+        <h1 class="title"> Logged In Users</h1>
         {% if data["users"]|length %}
             <div class="table-wrapper">
                 <table>
@@ -20,7 +21,7 @@
                             <td>
                                 {% if user["name"] %}
                                     {% if user["user_details_function"] %}
-                                        <a onclick={{user["user_details_function"]}} > {{user[name]}} </a>
+                                        <a onclick={{user["user_details_function"]}} > {{user["name"]}} </a>
                                     {% else %}
                                         {{user["name"]}}
                                     {% endif %}
