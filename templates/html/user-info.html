@@ -172,6 +172,80 @@
             </div>
         {% endif %}
 
+
+        {% if data["admin"] %}
+            <!-- USER HISTORY SECTION -->
+            <h1 class="sub-title"> Course the {{data["name"]}} worked on </h1>
+            <hr>
+            {% if data["courses"] %}
+                {% if data["courses"]|length %}
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <td>
+                                        No.
+                                    </td>
+                                    <td>
+                                        Course
+                                    </td>
+                                    <td>
+                                        Worked For
+                                    </td>
+                                    <td>
+                                        Rating
+                                    </td>
+                                    <td>
+                                        Rated At
+                                    </td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for course in data["courses"] %}
+                                    <tr>
+                                        <td>
+                                            {{course["id"]}}
+                                        </td>
+                                        <td>
+                                            {% if course["name"] %}
+                                                {% if course["link"] %}
+                                                    <a href={{course["link"]}}> {{course["name"]}} </a>
+                                                {% else %}
+                                                    {{course["name"]}}
+                                                {% endif %}
+                                            {% else %}
+                                                N/A
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if course["worked_for"] %}
+                                                {{course["worked_for"]}}
+                                            {% else %}
+                                                N/A
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if course["rated_at"] %}
+                                                {{course["rated_at"]}}
+                                            {% else %}
+                                                N/A
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <h1 class="error-message">
+                        {{data["name"]}} hasn't been working on any course so far.
+                    </h1>
+            {% else %}
+                <h1 class="error-message">
+                    ERROR: Couldn't get course info
+                </h1>
+            {% endif %}
+        {%endif %}
     {% else %}
         <h1 class="error-message">
             Resource unavailable for the moment.

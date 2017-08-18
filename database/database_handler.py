@@ -398,7 +398,7 @@ class DatabaseHandler:
                                     "id": <id of the entry>,
                                     "name": <course name>,
                                     "link": <course link>,
-                                    "worked_for": <total no. of seconds the user worked on this course>,
+                                    "worked_for": <time spent working on that course (HH:MM:SS)>,
                                     "rating": <rating given to the course>,
                                     "rated_at": <date the rating was last updated>
                                 },
@@ -443,7 +443,7 @@ class DatabaseHandler:
                 "id": id,
                 "name": course[0],
                 "link": course[1],
-                "worked_for": course[2],
+                "worked_for": time.strftime('%H:%M:%S', time.gmtime(course[2])),
                 "rating": course[3],
                 "rated_at": course[4]
             }
