@@ -151,7 +151,6 @@
                     <fieldset class="group">
                         <legend> Set user rights </legend>
                         <ul class="checklist">
-                            {{data["access"]}}
                         {% for category in data["access"] %}
                             <li>
                                 {% if category["has_access"] %}
@@ -164,6 +163,7 @@
                         {% endfor %}
                     </ul>
                     </fieldset>
+                    <input type="button" class="confirm-button" value="Confirm changes!" onclick="updateUserRights()">
                 {% else %}
                     <h1 class="error-message">
                         SERVER ERROR. NO RIGHTS GOT FROM THE DATABASE
