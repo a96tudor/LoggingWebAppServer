@@ -146,8 +146,7 @@ def create_archive_table():
                 "started_work DATE NOT NULL, " \
                 "logged_at DATE NOT NULL, " \
                 "archived_at DATE NOT NULL, " \
-                "reason VARCHAR(500) NOT NULL " \ 
-            ");"
+                "reason VARCHAR(500) NOT NULL) "
 
     execute_query(query)
 
