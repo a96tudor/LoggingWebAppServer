@@ -106,7 +106,7 @@
                         onclick="toggleDisplayHide(['password-reset-container', 'pass-confirm'], ['button-reset-pass'])">
             {% else %}
                 <input id="button-reset-pass" class="button-reset" type="button" value="Reset your password"
-                        onclick="toggleDisplayHide(['password-reset-container', 'pass-confirm'], ['button-reset-pass'])">
+                        onclick="toggleDisplayHide(['password-reset-container', 'pass-confirm', 'cancel-pass-edit'], ['button-reset-pass'])">
             {% endif %}
 
             <div id="password-reset-container">
@@ -120,7 +120,7 @@
                     <input id="pass-confirm" class="edit-input" type="button" value="Submit"
                             onclick="adminUpdatePass();">
                     <input id="cancel-pass-edit" class="edit-input" type="button" value="Cancel"
-                           onclick="toggleDisplayHide(['button-reset-pass'], ['password-reset-container','pass-confirms'])">
+                           onclick="toggleDisplayHide(['button-reset-pass'], ['password-reset-container','pass-confirms', 'cancel-pass-edit'])">
                 {% else %}
                      <span></span>
                      <input class="pass-input" type="password" id="old_pass" placeholder="Enter your old password here...">
@@ -135,7 +135,7 @@
                      <input id="pass-confirm" class="edit-input" type="button" value="Submit"
                             onclick="updatePass();">
                      <input id="cancel-pass-edit" class="edit-input" type="button" value="Cancel"
-                           onclick="toggleDisplayHide(['button-reset-pass'], ['password-reset-container','pass-confirms'])">
+                           onclick="toggleDisplayHide(['button-reset-pass'], ['password-reset-container','pass-confirms', 'cancel-pass-edit'])">
                 {% endif %}
 
             </div>
