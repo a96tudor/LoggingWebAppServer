@@ -151,6 +151,7 @@
                     <fieldset class="group">
                         <legend> Set user rights </legend>
                         <ul class="checklist">
+                            {{data["access"]}}
                         {% for category in data["access"] %}
                             <li>
                                 {% if category["has_access"] %}
