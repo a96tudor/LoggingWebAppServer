@@ -671,7 +671,7 @@ def get_working_users():
     return render_template("html/admin/users/working-users.html", data=data)
 
 
-@app.route("/admin/new-user", methods=["GET, OPTIONS"])
+@app.route("/admin/new-user", methods=["GET", "OPTIONS"])
 @cross_origin()
 def get_new_user_template():
 
