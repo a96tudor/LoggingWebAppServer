@@ -225,6 +225,42 @@
                                             {% endif %}
                                         </td>
                                         <td>
+                                            <div class="rating-fixed">
+                                                {% if course["rating"] %}
+                                                    <span class="yellow">☆</span>
+
+                                                    {% if course["rating"] > 1 %}
+                                                        <span class="yellow">☆</span>
+                                                    {% else %}
+                                                        <span>☆</span>
+                                                    {% endif %}
+
+                                                    {% if course["rating"] > 2 %}
+                                                        <span class="yellow">☆</span>
+                                                    {% else %}
+                                                        <span>☆</span>
+                                                    {% endif %}
+
+                                                    {% if course["rating"] > 3 %}
+                                                        <span class="yellow">☆</span>
+                                                    {% else %}
+                                                        <span>☆</span>
+                                                    {% endif %}
+
+                                                    {% if course["rating"] > 4 %}
+                                                        <span class="yellow">☆</span>
+                                                    {% else %}
+                                                        <span>☆</span>
+                                                    {% endif %}
+
+
+                                                {% else %}
+                                                    <span>☆</span><span>☆</span><span>☆</span><span>☆</span><span>☆</span>
+                                                {% endif %}
+                                            </div>
+
+                                        </td>
+                                        <td>
                                             {% if course["rated_at"] %}
                                                 {{course["rated_at"]}}
                                             {% else %}
