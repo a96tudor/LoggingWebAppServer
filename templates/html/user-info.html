@@ -175,7 +175,7 @@
 
         {% if data["admin"] %}
             <!-- USER HISTORY SECTION -->
-            <h1 class="sub-title"> Course the {{data["name"]}} worked on </h1>
+            <h1 class="sub-title"> Course that {{data["name"]}} worked on </h1>
             <hr>
             {% if data["courses"] %}
                 {% if data["courses"]|length %}
@@ -283,6 +283,13 @@
                 </h1>
             {% endif %}
         {%endif %}
+
+        {% if data["admin"] %}
+            <!-- DANGER ZONE SECTION -->
+            <h1 class="sub-title"> !!!!!   DANGER ZONE   !!!! </h1>
+            <hr>
+            <input type="button" class="delete-button" value="DELETE USER!">
+        {% endif %}
     {% else %}
         <h1 class="error-message">
             Resource unavailable for the moment.
