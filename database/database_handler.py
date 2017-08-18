@@ -452,6 +452,43 @@ class DatabaseHandler:
 
         return result
 
+    def _get_categories_list(self):
+        """
+
+        :return:                A dictionary with the following form:
+                                {
+                                    "success":  <True/ False>,
+                                    "categories": [                                 (only if successful)
+                                        {
+                                            "id": <id of the list entry>,
+                                            "category_name": <name of the new category>
+                                        }
+                                    ],
+                                    "message": <ERROR message>                      (only if not successful)
+                                }
+        """
+
+        try:
+            categories = self._execute_SELECT(table="course_categories", conds=None, cols=["category_name"])
+        except:
+            return {"success": False, "message": "Database failure"}
+
+        result = {
+            "success": True,
+            "categories": list()
+        }
+        id = 1
+
+        for category in categories:
+            new_entry = {
+                "id": id,
+                "category_name": category[0]
+            }
+            result["categories"].append(new_entry)
+            id += 1
+
+        return result
+
     def start_work(self, email_hash, course):
         """
 
@@ -1400,7 +1437,8 @@ class DatabaseHandler:
                             "access":   [                   (only if successful and asker is admin)
                                 {
                                     "id": <id of entry>,
-                                    "category": <name of category the user has access to>
+                                    "category": <name of category>,
+                                    "has_access": <True/ False>
                                 },
                                 {
                                     ...
@@ -1425,7 +1463,8 @@ class DatabaseHandler:
                 "success": False, "message": "Invalid user id!"
             }
 
-        rights = self.get_user_rights(user_id=id_user)
+        rights = [x["category_name"] for x in self.get_user_rights(user_id=id_user)["rights"]]
+        categories = self._get_categories_list()
 
         if self.is_admin(id_asker):
             courses = self._get_courses_user_worked_on(user[0])
@@ -1434,7 +1473,8 @@ class DatabaseHandler:
                 "admin": True,
                 "name": user[2],
                 "email": user[1],
-                "access": rights["rights"] if rights["success"] else 0,
+                "access": [{"id": "cb" + str(x["id"]), "category": x["category_name"], "has_access": x in rights}
+                                    for x in categories["categories"]] if categories["success"] else None,
                 "courses": courses["courses"] if courses["success"] else 0
             }
         else:
@@ -2202,46 +2242,6 @@ class DatabaseHandler:
                 "user_details_function": "get_user_details('user', '" + self._get_sha256_encryption(user[1]) + "')"
             }
             result["users"].append(new_entry)
-            id += 1
-
-        return result
-
-    def get_categories_list(self, admin_id):
-        """
-
-        :param admin_id:        id of the admin trying to perform the action
-        :return:                A dictionary with the following form:
-                                {
-                                    "success":  <True/ False>,
-                                    "categories": [                                 (only if successful)
-                                        {
-                                            "id": <id of the list entry>,
-                                            "category_name": <name of the new category>
-                                        }
-                                    ],
-                                    "message": <ERROR message>                      (only if not successful)
-                                }
-        """
-        if not self.is_admin(admin_id):
-            return {"success": False, "message": "Not enough rights to get the course categories"}
-
-        try:
-            categories = self._execute_SELECT(table="course_categories", conds=None, cols=["category_name"])
-        except:
-            return {"success": False, "message": "Database failure"}
-
-        result = {
-            "success": True,
-            "categories": list()
-        }
-        id = 1
-
-        for category in categories:
-            new_entry = {
-                "id": id,
-                "category_name": category[0]
-            }
-            result["categories"].append(new_entry)
             id += 1
 
         return result

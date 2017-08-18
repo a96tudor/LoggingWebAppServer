@@ -1,8 +1,8 @@
 {% if data %}
     {% if data["success"] %}
 
-        <h1 class="title"> </h1>
-            Account Information
+        <h1 class="title"> Account Information </h1>
+
             {% if data["admin"] %}
                 <h1 class="title">
                     - {{data["name"]}} -
@@ -140,6 +140,37 @@
 
             </div>
         </div>
+
+        {% if data["admin"] %}
+            <!-- USER RIGHTS SECTION -->
+            <h1 class="sub-title"> User Rights </h1>
+            <hr>
+
+            <div class="edit-container">
+                {% if data["access"]
+                    <fieldset class="group">
+                        <legend> Set user rights </legend>
+                        <ul class="checklist">
+                        {% for category in data["access"] %}
+                            <li>
+                                {% if category["has_access"] %}
+                                    <input id={{category["id"]}} type="checkbox" value={{category["name"]}} checked>
+                                {% else %}
+                                    <input id={{category["id"]}} type="checkbox" value={{category["name"]}}>
+                                {% endif %}
+                                    <label for={{category["id"]}}> {{category["name"]}}</label>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    </fieldset>
+                {% else %}
+                    <h1 class="error-message">
+                        SERVER ERROR. NO RIGHTS GOT FROM THE DATABASE
+                    </h1>
+                {% endif %}
+            </div>
+        {% endif %}
+
     {% else %}
         <h1 class="error-message">
             Resource unavailable for the moment.
