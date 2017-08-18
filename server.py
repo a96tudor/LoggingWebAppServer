@@ -673,7 +673,7 @@ def get_working_users():
 
 @app.route("/admin/new-user", methods=["GET, OPTIONS"])
 @cross_origin()
-def get_new_user_template()
+def get_new_user_template():
 
     id = request.args.get("id")
     if not dh.is_admin(id):
