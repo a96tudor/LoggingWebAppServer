@@ -683,6 +683,27 @@ def get_new_user_template():
 
     return render_template("html/admin/users/new_user.html", data=data_for_template)
 
+
+@app.route("/admin/add/user", methods=["PUT", "OPTIONS"])
+@cross_origin()
+def add_user():
+
+    id = request.args.get("id")
+
+    if not dh.is_admin(id):
+        return Response(status=400, response="Access not allowed")
+
+    if request.is_json:
+        data = request.json
+        result = dh.add_user(id_adder=id, email=data["email"], full_name=data["full_name"],
+                             admin=data["admin"], rights=data["rights"])
+        if result["success"]:
+            return Response(status=200, response="Success")
+        else:
+            return Response(status=400, response=result["message"])
+    else:
+        return Response(status=400, response="Invalid format")
+
 if __name__ == "__main__":
     try:
         app.run(port=5000, debug=True)

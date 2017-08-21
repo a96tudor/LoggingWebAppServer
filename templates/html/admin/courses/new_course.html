@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+
+{% if data and data|length %}
+    <div id="name-container" class="info">
+        <div class="inline">
+            <p class="info"> Name: </p>
+            </div>
+        <div class="inline">
+            <input type="text" placeholder="Enter user's name here!" id="name-input">
+        </div>
+    </div>
+
+    <br/>
+
+    <div id="category-container" class="info">
+        <label for="id_label_single">
+          Select Course Category:
+          <br/>
+
+            <script type="text/javascript">
+                $(document).ready(function() {
+                  $(".js-example-basic-single").select2();
+                });
+            </script>
+
+            <select class="js-example-basic-single js-states form-control select_resize" id="id_label_single">
+              {% for item in data %}
+                {% if item["category_name"] %}
+                  <option>
+                    {{ item["category_name"] }}
+                  </option>
+                {% endif %}
+              {% endfor %}
+            </select>
+          <br/>
+        </label>
+    </div>
+
+    <br/>
+
+    <div id="time-container" class="info">
+       <p class="info"> Time information </p>
+       <div id=""></div>
+    </div>
+{% else %}
+    <h1 class="error-message"> ERROR: Couldn't load course categories!</h1>
+{% endif %}
